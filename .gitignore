@@ -1,0 +1,25 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IPython
+profile_default/
+ipython_config.py
+
+# pyenv
+.python-version
+
+# Pycharm configs
+.idea
+
+# ignoring Run/Debug Configs
+.run
+
+# ignore all the data files – embeddings, dataframes generated upon experiments
+/src/data/
+
+.git

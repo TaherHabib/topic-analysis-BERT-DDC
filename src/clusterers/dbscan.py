@@ -2,7 +2,7 @@ import os
 import logging
 import numpy as np
 
-from sklearn.cluster import DBSCAN
+from sklearn.cluster import DBSCAN, OPTICS
 from sklearn.metrics import silhouette_score, adjusted_rand_score, adjusted_mutual_info_score, davies_bouldin_score
 from utils import settings
 from .cluster_utils import compute_dunn_index, compute_cluster_centers, compute_cluster_sizes, get_num_dbscan_clusters
@@ -53,7 +53,8 @@ class DBSCAN_CLUSTERER:
                    true_labels=None,
                    return_result=False,
                    save_to_disk=True,
-                   file_args=None):
+                   file_args=None,
+                   use_optics=True):
 
         save_path = self.set_save_path(file_args)
 
@@ -63,13 +64,22 @@ class DBSCAN_CLUSTERER:
         for eps in self.eps_range:
             for min_samples in self.min_samples_range:
                 logging.info('Trial={}--Eps={}, MinSamples={}'.format(idx, eps, min_samples))
-                dbscan_ = DBSCAN(eps=eps,
-                                 min_samples=min_samples,
-                                 metric=self.metric,
-                                 algorithm=self.algorithm,
-                                 p=self.p,
-                                 n_jobs=self.n_jobs)
-                dbscan_.fit(data)
+                if use_optics:
+                    dbscan_ = OPTICS(eps=eps,
+                                     min_samples=min_samples,
+                                     cluster_method='dbscan',
+                                     metric=self.metric,
+                                     p=self.p,
+                                     n_jobs=self.n_jobs)
+                    dbscan_.fit(data)
+                else:
+                    dbscan_ = DBSCAN(eps=eps,
+                                     min_samples=min_samples,
+                                     metric=self.metric,
+                                     algorithm=self.algorithm,
+                                     p=self.p,
+                                     n_jobs=self.n_jobs)
+                    dbscan_.fit(data)
 
                 # Compute cluster centers for DBSCAN using np.mean()
                 dbscan_cluster_centers_ = compute_cluster_centers(datapoints=data, labels=dbscan_.labels_)
@@ -117,8 +127,8 @@ class DBSCAN_CLUSTERER:
                     if save_to_disk:
                         logger.info('Saving to disk...')
                         # Creates individual files for each setting of kmeans HPs
-                        kmeans_file_name = 'Eps{}_MinSamples{}'.format(eps, min_samples)
-                        np.savez_compressed(file=os.path.join(save_path, kmeans_file_name + '.npz'), **results_)
+                        dbscan_file_name = 'Eps{}_MinSamples{}'.format(eps, min_samples)
+                        np.savez_compressed(file=os.path.join(save_path, dbscan_file_name + '.npz'), **results_)
 
                     if return_result:
                         trial_idx.append('Trial={}--Eps={}, MinSamples={}'.format(idx, eps, min_samples))

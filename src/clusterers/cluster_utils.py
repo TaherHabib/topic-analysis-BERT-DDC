@@ -52,7 +52,12 @@ def compute_dunn_index(X=None, cluster_centers=None, labels=None):
     return numerator / denominator,  numerator / np.mean(max_intra_cluster_dist)
 
 
-def get_kdist_plot(X=None, k=None, radius_nbrs=1.0, metric='minkowski', p=2):
+def get_kdist_plot(X=None,
+                   k=None,
+                   radius_nbrs=1.0,
+                   metric='minkowski',
+                   p=2,
+                   make_plot=False):
 
     # 'k' is 479 for embeddings of size 240 (layer 7 , classification head)
     # 'k' is 159 for embeddings of size 80 (pooler output)
@@ -62,18 +67,30 @@ def get_kdist_plot(X=None, k=None, radius_nbrs=1.0, metric='minkowski', p=2):
                             p=p).fit(X)
 
     # For each point, compute distances to its k-nearest neighbors
-    distances, indices = nbrs.kneighbors(X)  # size('distances') = # of points in X
-                                             # Each element in 'distances' is of len = k
+    distances, indices = nbrs.kneighbors(X)
+    # size('distances') = # of points in X. Each element in 'distances' is of len = k
     distances = np.sort(distances, axis=0)
     k_distances = distances[:, k-1]
-    plt.figure(figsize=(8,8))
-    plt.plot(k_distances)
-    plt.xlabel('Points/Objects in the dataset', fontsize=12)
-    plt.ylabel('Sorted {}-nearest neighbor distance'.format(k), fontsize=12)
-    plt.grid(True, linestyle="--", color='black', alpha=0.4)
-    plt.show()
-    plt.close()
+    if make_plot:
+        plt.figure(figsize=(8,8))
+        plt.plot(k_distances)
+        plt.xlabel('Points/Objects in the dataset', fontsize=12)
+        plt.ylabel('Sorted {}-nearest neighbor distance'.format(k), fontsize=12)
+        plt.grid(True, linestyle="--", color='black', alpha=0.4)
+        plt.show()
+        plt.close()
 
     return distances
+
+
+def get_interdist_distribution(X=None,
+                               metric='minkowski',
+                               p=2,
+                               make_plot=False):
+    pass
+
+
+
+
 
 

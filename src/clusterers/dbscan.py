@@ -67,8 +67,8 @@ class DBSCAN_CLUSTERER:
                 if use_optics:
                     dbscan_ = OPTICS(eps=eps,
                                      min_samples=min_samples,
-                                     cluster_method='dbscan',
                                      metric=self.metric,
+                                     cluster_method='dbscan',
                                      p=self.p,
                                      n_jobs=self.n_jobs)
                     dbscan_.fit(data)

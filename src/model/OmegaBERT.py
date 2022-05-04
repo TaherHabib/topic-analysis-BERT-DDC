@@ -1,5 +1,5 @@
 from src.preprocessing import Dataloaders, DatasetProcessing
-import config
+from src.model import config
 import glob
 import numpy as np
 import tensorflow as tf
@@ -8,8 +8,10 @@ import logging
 
 
 class TrainingWrapper:
-    def __init__(self,train,test):
+    def __init__(self,train,test, freeze_bert_layers=False):
         logging.getLogger('Model').setLevel('INFO')
+        print(f'{tf.__version__}')
+        self.freeze_bert_layers = freeze_bert_layers
         self.model = self.build_model()
         logging.info('model was initialized successfully.')
         self.model_index_id = self.get_model_index()
@@ -30,12 +32,21 @@ class TrainingWrapper:
         input_type_ids = tf.keras.layers.Input(shape=(config.max_length,), name='token_type_ids', dtype='int32')
         out = bert_model(input_ids, attention_mask=input_masks_ids, token_type_ids=input_type_ids)
         sequence_output = out.pooler_output
-        output = tf.keras.layers.Dense(config.classes, activation="softmax", name='dense_final')(sequence_output)
+        if self.freeze_bert_layers:
+            bert_model.trainable = False
+        glob_leaky = tf.keras.layers.LeakyReLU(alpha=0.15)
+        ch1 = tf.keras.layers.Dense(1024,activation=glob_leaky,name='ch1')(sequence_output)
+        ch2 = tf.keras.layers.BatchNormalization(name='b_norm_1')(ch1)
+        ch3 = tf.keras.layers.Dense(512,activation=glob_leaky,name='ch2')(ch2)
+        ch4 = tf.keras.layers.BatchNormalization(name='b_norm_2')(ch3)
+        ch5 = tf.keras.layers.Dense(256,activation=glob_leaky,name='ch3')(ch4)
+        ch6 = tf.keras.layers.Dense(128, activation=glob_leaky, name='ch4')(ch5)
+        output = tf.keras.layers.Dense(config.classes, activation="softmax", name='dense_final')(ch6)
         model = tf.keras.Model(inputs=[input_ids, input_masks_ids, input_type_ids],
                                outputs=output)
         return model
 
-    def train_model(self):
+    def train_model(self, class_imbalance_dict, save_prefix=0):
         if config.train_to_convergence:
             early_stopping = tf.keras.callbacks.EarlyStopping(
                 monitor='val_acc',
@@ -46,6 +57,7 @@ class TrainingWrapper:
 
         model = self.model
         model.summary()
+        logging.info('Loading datasets')
         train, dev = self.get_dataloaders()
         model.compile(
             optimizer=tf.keras.optimizers.Adam(learning_rate=config.learning_rate),
@@ -57,6 +69,7 @@ class TrainingWrapper:
         else:
             callbacks = None
         history = model.fit(
+            class_weight = class_imbalance_dict,
             x=train,
             validation_data=dev,
             epochs=config.training_epochs,
@@ -64,6 +77,6 @@ class TrainingWrapper:
             workers=-1,
             callbacks=callbacks
         )
-        model.save_weights(f'../src/data/checkpoints/model_index_{self.model_index_id}')
+        model.save_weights(f'./src/data/checkpoints/model_index_{save_prefix}')
         return history
 

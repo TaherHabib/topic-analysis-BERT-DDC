@@ -1,7 +1,6 @@
-from src.preprocessing import Dataloaders, DatasetProcessing
-from src.model import config
+from src.preprocessing import Dataloaders
+from src.model import config, customDecay
 import glob
-import numpy as np
 import tensorflow as tf
 import transformers
 import logging
@@ -67,7 +66,9 @@ class TrainingWrapper:
         if config.train_to_convergence:
             callbacks = [early_stopping]
         else:
-            callbacks = None
+            callbacks = []
+        if config.use_custom_learning_schedule:
+            callbacks.append(customDecay.get_scheduler())
         history = model.fit(
             class_weight = class_imbalance_dict,
             x=train,

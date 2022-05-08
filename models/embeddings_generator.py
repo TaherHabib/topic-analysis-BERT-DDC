@@ -3,8 +3,8 @@ import os
 import numpy as np
 import pandas as pd
 
-from model.utils.original_ddc_loader import load_classes_from_tsv
-from model.preprocessing import book_ddc_extractor
+from models.utils.original_ddc_loader import load_classes_from_tsv
+from models.preprocessing import book_ddc_extractor
 from src.SidBERT import sidbert_model
 from utils import settings
 

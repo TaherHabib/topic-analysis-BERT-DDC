@@ -3,9 +3,9 @@ from os.path import join
 import tensorflow as tf
 import transformers
 import logging
-from model.configs import config
-from model.utils import custom_decay
-from model.utils.dataloaders import SidBERTDataloader
+from models.configs import config
+from models.utils import custom_decay
+from models.utils.dataloaders import SidBERTDataloader
 from src_utils import settings
 
 # Set a logger
@@ -38,12 +38,12 @@ class OmegaBERT:
 
         """
         Constructs model topology and loads weights from Checkpoint file. Topology needs to be changed
-        manually every time a new model version is installed into the backend.
-        :return: Tensorflow 2 keras model object containing the model architecture
+        manually every time a new models version is installed into the backend.
+        :return: Tensorflow 2 keras models object containing the models architecture
         :rtype: tensorflow.keras.Model object
         """
 
-        # Construct model topology
+        # Construct models topology
         bert_model = transformers.TFBertModel.from_pretrained('bert-base-multilingual-cased')
         input_ids = tf.keras.layers.Input(shape=(config.max_length,), name='input_ids', dtype='int32')
         input_masks_ids = tf.keras.layers.Input(shape=(config.max_length,), name='attention_mask', dtype='int32')

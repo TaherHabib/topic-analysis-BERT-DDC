@@ -1,5 +1,5 @@
-from model import OmegaBERT
-from model.preprocessing import dataset_processing
+from models import OmegaBERT
+from models.preprocessing import dataset_processing
 import logging
 
 def main():

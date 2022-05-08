@@ -12,8 +12,8 @@ class CourseDataloader(k.utils.Sequence):
     :param generator_mode: whether to generate autoencoder input for single samples only
 
     :param titles: List of course titles to be pre-processed
-    :param ddc_labels List of one-hot encoded ddc labels from model
-    :param shuffle whether to shuffle the dataset if the model has finished training for one episode
+    :param ddc_labels List of one-hot encoded ddc labels from models
+    :param shuffle whether to shuffle the dataset if the models has finished training for one episode
     """
     def __init__(self, titles, ddc_labels, batch_size, shuffle=True,
                  text_only_mode = False,
@@ -61,7 +61,7 @@ class CourseDataloader(k.utils.Sequence):
 class BertEmbeddingModel:
 
     """
-    Vanilla BERT model to encoder Course Title information into BERT embeddings and to use them downstream.
+    Vanilla BERT models to encoder Course Title information into BERT embeddings and to use them downstream.
     """
     def __init__(self, pooler_only = True, input_length = 256):
         """

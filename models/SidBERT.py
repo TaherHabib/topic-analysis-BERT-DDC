@@ -3,10 +3,10 @@ import transformers
 import numpy as np
 from os.path import join
 import logging
-from model.utils import custom_decay
-from model.utils.dataloaders import SidBERTDataloader
+from models.utils import custom_decay
+from models.utils.dataloaders import SidBERTDataloader
 from src_utils import settings
-from model.utils.original_ddc_loader import load_classes_from_tsv, create_ddc_label_lookup
+from models.utils.original_ddc_loader import load_classes_from_tsv, create_ddc_label_lookup
 
 # Set a logger
 logger = logging.getLogger('SidBERT')
@@ -18,15 +18,15 @@ data_path = ...
 
 class SidBERT:
     """
-    this class loads the trained BERT model, and provide api to call the model to get relevant ddc codes.
+    this class loads the trained BERT models, and provide api to call the models to get relevant ddc codes.
     All interactions related to database lookup operations for course retrieval are handled in
     recommender_backbone.py
     """
     def __init__(self, train, test, freeze_bert_layers=False):
 
         """
-        Constructor of the class loads the trained model for prediction.
-        Use configuration from BERT_CONF config.py to load the model
+        Constructor of the class loads the trained models for prediction.
+        Use configuration from BERT_CONF config.py to load the models
         """
 
         self.train_dataset = train
@@ -41,7 +41,7 @@ class SidBERT:
         self.tokenizer = transformers.BertTokenizer.from_pretrained('bert-base-multilingual-cased')
         self.max_length = 300
 
-        # load trained model
+        # load trained models
         self.model = self.build_model()
         self.pruned_model = None
         self.loader = None
@@ -56,12 +56,12 @@ class SidBERT:
 
     def build_model(self, restore_model=False):
         """
-        Constructs model topology and loads weights from Checkpoint file. Topology needs to be changed
-        manually every time a new model version is installed into the backend.
-        :return: Tensorflow 2 keras model object containing the model architecture
+        Constructs models topology and loads weights from Checkpoint file. Topology needs to be changed
+        manually every time a new models version is installed into the backend.
+        :return: Tensorflow 2 keras models object containing the models architecture
         :rtype: tensorflow.keras.Model object
         """
-        # Construct model topology
+        # Construct models topology
         bert_model = transformers.TFBertModel.from_pretrained('bert-base-multilingual-cased')
 
         input_ids = tf.keras.layers.Input(shape=(300,), name='input_ids', dtype='int32')
@@ -107,7 +107,7 @@ class SidBERT:
 
     def predict_single_example(self, sequence, top_n=1):
         """
-        queries the model neural network to produce a DDC label assignment together with an associated probability
+        queries the models neural network to produce a DDC label assignment together with an associated probability
         sequence: String input that is to be classified
         top_n: number of DDC labels to be returned. Defaults to 1
 
@@ -124,9 +124,9 @@ class SidBERT:
                                                 encoded_sequence['attention_mask'],
                                                 encoded_sequence['token_type_ids']])[0]
 
-        # Extract 'top_n' entries from the sorted indices of the model's prediction probabilities
+        # Extract 'top_n' entries from the sorted indices of the models's prediction probabilities
         max_ddcClasses_indices = prediction_result.argsort()[::-1][:top_n]  # contains 'top_n' position_indices with
-        # max. probabilities outputted by the trained model
+        # max. probabilities outputted by the trained models
         max_ddcClasses_probs = prediction_result[max_ddcClasses_indices]
         max_ddcClasses_labels = [self.class_position_hash[index] for index in max_ddcClasses_indices]
 

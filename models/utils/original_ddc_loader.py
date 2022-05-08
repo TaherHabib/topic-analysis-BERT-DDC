@@ -9,7 +9,7 @@ import pandas as pd
 def load_classes_from_tsv(class_path):
     """
     loads all label IDs from the classes.tsv file
-    :return:list of DDC classes in the scope of the model.
+    :return:list of DDC classes in the scope of the models.
     :rtype: list object
     """
     try:

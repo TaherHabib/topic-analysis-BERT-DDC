@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 import os
-from model.configs import config
+from models.configs import config
 from sklearn.utils import class_weight
 
 

@@ -3,7 +3,7 @@ import logging
 import numpy as np
 import pandas as pd
 
-from utils import settings
+from src_utils import settings
 from src.clusterers.kmeans import KMEANS_CLUSTERER
 from src.clusterers.dbscan import DBSCAN_CLUSTERER
 
@@ -50,7 +50,7 @@ if __name__ == '__main__':
     reduced_embeddings = pca_embeddings['reduced_emb']
     real_labels = list(pca_dataframe['root_class'])
 
-    # Perform K-Means clustering
+    # Perform K-Means cluster
     if clusterer.lower() == 'kmeans':
         file_args.update({'pca_comp': pca_embeddings_filename.split('_')[0][4:],
                           'pca_var': pca_embeddings_filename.split('_')[1][3:],
@@ -75,7 +75,7 @@ if __name__ == '__main__':
                                                                               save_to_disk=True,
                                                                               file_args=file_args)
 
-    # Perform DBSCAN clustering
+    # Perform DBSCAN cluster
     if clusterer.lower() == 'dbscan':
         file_args.update({'pca_comp': pca_embeddings_filename.split('_')[0][4:],
                           'pca_var': pca_embeddings_filename.split('_')[1][3:],
@@ -111,4 +111,4 @@ if __name__ == '__main__':
                                                                               file_args=file_args)
 
     else:
-        raise ValueError('Wrong value for clustering algorithm! Choose from: \'KMeans\' or \'DBSCAN\'')
+        raise ValueError('Wrong value for cluster algorithm! Choose from: \'KMeans\' or \'DBSCAN\'')

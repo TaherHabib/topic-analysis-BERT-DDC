@@ -1,6 +1,7 @@
 import tensorflow as tf
 import numpy as np
 
+
 def schedule(epoch, lr):
     if epoch <= 1:
         return lr

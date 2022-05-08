@@ -4,15 +4,15 @@ Extracts book and DDC information from raw files and makes them usable for downs
 
 """
 
-from os.path import abspath, join
+from os.path import join
 import pandas as pd
 import logging
 import re
 import csv
 import json
-from utils import settings
+from src_utils import settings
 
-from .original_DDCClass_loader import load_classes_from_tsv, create_ddc_label_lookup
+from model.utils.original_ddc_loader import load_classes_from_tsv, create_ddc_label_lookup
 
 # Set a logger
 logger = logging.getLogger()
@@ -22,11 +22,12 @@ handler.setLevel(logging.INFO)
 handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s : %(levelname)s :- %(message)s'))
 logger.addHandler(handler)
 
+project_root = settings.get_project_root()
+
 
 class DDCBookExtractor:
     def __init__(self):
 
-        project_root = settings.get_project_root()
         path = join(project_root, 'src', 'data', 'SidBERT_data')
         self.data_path = join(path, 'book_ddc_data')
         self.classes = load_classes_from_tsv(join(path, 'bert_data', 'classes.tsv'))

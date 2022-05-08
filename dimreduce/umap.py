@@ -3,7 +3,7 @@ import os
 import numpy as np
 import logging
 import h5py
-from utils import settings
+from src_utils import settings
 
 # Set a logger
 logger = logging.getLogger()

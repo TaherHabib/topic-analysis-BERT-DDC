@@ -1,13 +1,23 @@
-from src.preprocessing import Dataloaders
-from src.model import config, customDecay
 import glob
+from os.path import join
 import tensorflow as tf
 import transformers
 import logging
+from model.configs import config
+from model.utils import custom_decay
+from model.utils.dataloaders import SidBERTDataloader
+from src_utils import settings
+
+# Set a logger
+logger = logging.getLogger('OmegaBERT')
+logger.setLevel('INFO')
+
+project_root = settings.get_project_root()
+data_path = ...
 
 
-class TrainingWrapper:
-    def __init__(self,train,test, freeze_bert_layers=False):
+class OmegaBERT:
+    def __init__(self, train, test, freeze_bert_layers=False):
         logging.getLogger('Model').setLevel('INFO')
         print(f'{tf.__version__}')
         self.freeze_bert_layers = freeze_bert_layers
@@ -22,17 +32,26 @@ class TrainingWrapper:
         return len(model_list)
 
     def get_dataloaders(self):
-        return Dataloaders.SidBERTDataloader(self.train_dataset), Dataloaders.SidBERTDataloader(self.test_dataset)
+        return SidBERTDataloader(self.train_dataset), SidBERTDataloader(self.test_dataset)
 
-    def build_model(self):
+    def build_model(self, restore_model=False):
+
+        """
+        Constructs model topology and loads weights from Checkpoint file. Topology needs to be changed
+        manually every time a new model version is installed into the backend.
+        :return: Tensorflow 2 keras model object containing the model architecture
+        :rtype: tensorflow.keras.Model object
+        """
+
+        # Construct model topology
         bert_model = transformers.TFBertModel.from_pretrained('bert-base-multilingual-cased')
         input_ids = tf.keras.layers.Input(shape=(config.max_length,), name='input_ids', dtype='int32')
         input_masks_ids = tf.keras.layers.Input(shape=(config.max_length,), name='attention_mask', dtype='int32')
         input_type_ids = tf.keras.layers.Input(shape=(config.max_length,), name='token_type_ids', dtype='int32')
         out = bert_model(input_ids, attention_mask=input_masks_ids, token_type_ids=input_type_ids)
-        sequence_output = out.pooler_output
         if self.freeze_bert_layers:
             bert_model.trainable = False
+        sequence_output = out.pooler_output
         glob_leaky = tf.keras.layers.LeakyReLU(alpha=0.15)
         ch1 = tf.keras.layers.Dense(1024,activation=glob_leaky,name='ch1')(sequence_output)
         ch2 = tf.keras.layers.BatchNormalization(name='b_norm_1')(ch1)
@@ -70,7 +89,7 @@ class TrainingWrapper:
         if config.use_custom_learning_schedule:
             callbacks.append(customDecay.get_scheduler())
         history = model.fit(
-            class_weight = class_imbalance_dict,
+            class_weight=class_imbalance_dict,
             x=train,
             validation_data=dev,
             epochs=config.training_epochs,

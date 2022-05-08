@@ -1,37 +1,19 @@
 import tensorflow as tf
 import transformers
 import numpy as np
-from os.path import abspath, join
+from os.path import join
+import logging
+from model.utils import custom_decay
+from model.utils.dataloaders import SidBERTDataloader
+from src_utils import settings
+from model.utils.original_ddc_loader import load_classes_from_tsv, create_ddc_label_lookup
 
-from utils import settings
-from preprocessing.original_DDCClass_loader import load_classes_from_tsv, \
-    create_ddc_label_lookup
+# Set a logger
+logger = logging.getLogger('SidBERT')
+logger.setLevel('INFO')
 
-
-class SidBERTDataloader(tf.keras.utils.Sequence):
-    def __init__(self, titles, batch_size=16, max_length=300):
-        self.titles = np.asarray(titles, dtype='str')
-        self.indices = np.arange(len(self.titles))
-        self.batch_size = batch_size
-        self.tokenizer = transformers.BertTokenizer.from_pretrained('bert-base-multilingual-cased')
-        self.max_length = max_length
-
-    def __len__(self):
-        return len(self.titles) // self.batch_size
-
-    def __getitem__(self, index):
-        local_indices = self.indices[index * self.batch_size: (index + 1) * self.batch_size]
-        sentence = self.titles[local_indices]
-        tokenized_encoding = self.tokenizer.batch_encode_plus(sentence,
-                                                              add_special_tokens=True,
-                                                              padding='max_length',
-                                                              max_length=self.max_length,
-                                                              truncation=True,
-                                                              return_attention_mask=True,
-                                                              return_token_type_ids=True,
-                                                              pad_to_max_length=True,
-                                                              return_tensors="tf", ).data
-        return tokenized_encoding
+project_root = settings.get_project_root()
+data_path = ...
 
 
 class SidBERT:
@@ -40,15 +22,16 @@ class SidBERT:
     All interactions related to database lookup operations for course retrieval are handled in
     recommender_backbone.py
     """
-    def __init__(self):
+    def __init__(self, train, test, freeze_bert_layers=False):
+
         """
         Constructor of the class loads the trained model for prediction.
         Use configuration from BERT_CONF config.py to load the model
         """
-        project_root = settings.get_project_root()
-        data_path = join(project_root, 'src', 'data', 'SidBERT_data')
-        # load models
-        self.model_checkpoint_path = join(data_path, 'bert_models')
+
+        self.train_dataset = train
+        self.test_dataset = test
+        self.model_checkpoint_path = join(data_path, 'trained_models')
 
         # create label lookup table for label assignment from last classification layer
         self.classes = load_classes_from_tsv(join(data_path, 'bert_data', 'classes.tsv'))
@@ -59,16 +42,19 @@ class SidBERT:
         self.max_length = 300
 
         # load trained model
-        self.model = self._load_model()
+        self.model = self.build_model()
         self.pruned_model = None
         self.loader = None
+
+    def get_dataloaders(self):
+        return SidBERTDataloader(self.train_dataset), SidBERTDataloader(self.test_dataset)
 
     def construct_dataloader(self, frame, batch_size):
         titles = frame['Title'].to_list()
         self.loader = SidBERTDataloader(titles=titles, batch_size=batch_size)
         return self.loader
 
-    def _load_model(self):
+    def build_model(self, restore_model=False):
         """
         Constructs model topology and loads weights from Checkpoint file. Topology needs to be changed
         manually every time a new model version is installed into the backend.
@@ -83,6 +69,8 @@ class SidBERT:
         input_type_ids = tf.keras.layers.Input(shape=(300,), name='token_type_ids', dtype='int32')
         out = bert_model(input_ids, attention_mask=input_masks_ids, token_type_ids=input_type_ids)
         sequence_output = out.last_hidden_state
+        if self.freeze_bert_layers:
+            bert_model.trainable = False
         concat = tf.keras.layers.Dense(3000, activation='relu', name='dense_3000')(sequence_output)
         concat = tf.keras.layers.GlobalAveragePooling1D()(concat)
         dropout = tf.keras.layers.Dropout(0.35)(concat)
@@ -92,9 +80,11 @@ class SidBERT:
         model = tf.keras.Model(inputs=[input_ids, input_masks_ids, input_type_ids],
                                outputs=output)
 
-        # restore model weights from checkpoint file
-        model.load_weights(join(self.model_checkpoint_path, 'new_training_latest_architecture'))
-        return model
+        if restore_model:
+            model.load_weights(join(self.model_checkpoint_path, 'new_training_latest_architecture'))
+            return model
+        else:
+            return model
 
     def batch_get_pruned_model_output(self, dataset, batch_size, prune_at_layer=None):
         outputs = []
@@ -117,7 +107,7 @@ class SidBERT:
 
     def predict_single_example(self, sequence, top_n=1):
         """
-        queries the SidBERT neural network to produce a DDC label assignment together with an associated probability
+        queries the model neural network to produce a DDC label assignment together with an associated probability
         sequence: String input that is to be classified
         top_n: number of DDC labels to be returned. Defaults to 1
 

@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from src.model.preprocessing.autoencoder_dataset.course_dataloader import CourseDataloader
+from model.preprocessing.autoencoder_dataset.course_dataloader import CourseDataloader
 
 
 class StudyPathAnalyzerFile:

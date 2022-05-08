@@ -1,12 +1,13 @@
 import pandas as pd
 import numpy as np
 import os
-from src.model import config
+from model.configs import config
 from sklearn.utils import class_weight
+
 
 class DatasetCreator:
     def __init__(self):
-        self.raw_dataset = pd.read_csv(os.path.join(os.path.abspath('.'),'data','datasets',config.dataset_name),dtype='str')
+        self.raw_dataset = pd.read_csv(os.path.join(os.path.abspath('../../src/preprocessing'), 'data', 'datasets', config.dataset_name), dtype='str')
         self.select_level = config.select_level
 
     def aggregate_to_level(self):
@@ -35,7 +36,6 @@ class DatasetCreator:
             train_frame['DDC'].to_numpy())))
 
         return train_frame, test_frame, class_weight_dict
-
 
     def even_distribute_dataset(self,preprocessed_dataset, train_test_ratio=0.1):
         minimum = preprocessed_dataset['DDC'].value_counts()[-1]

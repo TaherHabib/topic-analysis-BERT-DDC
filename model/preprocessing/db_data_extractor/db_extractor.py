@@ -58,7 +58,6 @@ class PreprocessingDatahandler:
         concat_courses = concat_courses.drop_duplicates(subset='title',ignore_index=True)
         return concat_courses
 
-
     def course_generate_dataset(self, course_frame, dev_percent = 0.1):
         if dev_percent < 0 or dev_percent > 1:
             raise ValueError("value for validation set percentage out of bounds, must be between 0 and 1.")

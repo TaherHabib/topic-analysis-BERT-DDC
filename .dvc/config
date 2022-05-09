@@ -1,0 +1,4 @@
+[core]
+    remote = siddata_data
+['remote "siddata_data"']
+    url = gdrive://1VR2vuUEK8gA9_DhhjtkxAGFdeh0dAgp9

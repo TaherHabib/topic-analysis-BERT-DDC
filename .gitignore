@@ -20,7 +20,7 @@ ipython_config.py
 .run
 
 # ignore all the data files – embeddings, dataframes generated upon experiments
-/data_/
+/data/data_/
 
 .git
 

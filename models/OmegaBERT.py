@@ -99,4 +99,3 @@ class OmegaBERT:
         )
         model.save_weights(f'./src/data/checkpoints/model_index_{save_prefix}')
         return history
-

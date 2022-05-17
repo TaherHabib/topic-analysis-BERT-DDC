@@ -18,7 +18,7 @@ class DatasetCreator:
     def remove_titles_below_length(self, dataset, length):
         return dataset.loc[dataset['Title'].str.len() >= length].reset_index(drop=True).drop(columns=['Unnamed: 0'])
 
-    def unbalanced_dataset(self, preprocessed_dataset,train_test_ratio = 0.1):
+    def unbalanced_dataset(self, preprocessed_dataset,train_test_ratio=0.1):
         train_frame = pd.DataFrame()
         test_frame = pd.DataFrame()
         for index in preprocessed_dataset['DDC'].unique():

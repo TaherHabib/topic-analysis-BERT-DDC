@@ -87,7 +87,7 @@ class OmegaBERT:
         else:
             callbacks = []
         if config.use_custom_learning_schedule:
-            callbacks.append(customDecay.get_scheduler())
+            callbacks.append(custom_decay.get_scheduler())
         history = model.fit(
             class_weight=class_imbalance_dict,
             x=train,

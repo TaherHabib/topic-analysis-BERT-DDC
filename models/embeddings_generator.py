@@ -5,7 +5,7 @@ import pandas as pd
 
 from models.utils.original_ddc_loader import load_classes_from_tsv
 from models.preprocessing import book_ddc_extractor
-from src.SidBERT import sidbert_model
+from models import SidBERT
 from utils import settings
 
 batch_size = 16
@@ -41,7 +41,7 @@ def generate_embeddings(prune_at_layer='pooler_output'):
 
     logger.info(f'Path is {save_path}')
     ddc_extractor = book_ddc_extractor.DDCBookExtractor()
-    sidbert = sidbert_model.SidBERT()
+    sidbert = SidBERT.SidBERT(train=None, test=None)
 
     # Load the entire dataset of 1315988 book title entries, their DDC classes, etc.
     dataset = ddc_extractor.parse_and_collect_raw_data()  # Dataframe with

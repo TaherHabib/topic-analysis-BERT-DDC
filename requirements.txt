@@ -13,3 +13,7 @@ scikit_learn==1.1.1
 setuptools==60.9.3
 tensorflow==2.9.0
 transformers==4.16.0
+
+sklearn~=0.0
+scikit-learn~=1.1.1
+bash~=0.6

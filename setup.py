@@ -12,7 +12,7 @@ with open(path.join(ROOT, "requirements.txt")) as f:
 
 setup(
     name='topic-analysis-bert',
-    author='JohannesSchrumpf, TaherHabib',
+    author='Johannes Schrumpf, Taher Habib',
     url='https://github.com/TaherHabib/topic-analysis-BERT-DDC',
     description='Using BERT to perform classification of books and courses according to Dewey-Decimal-Classification system',
     packages=find_packages(),

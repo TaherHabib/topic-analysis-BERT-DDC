@@ -5,7 +5,7 @@ import transformers
 import logging
 from models.configs import config
 from models.utils import custom_decay
-from models.utils.dataloaders import SidBERTDataloader
+from models.utils.DataLoaders import SidBERTDataloader
 from src_utils import settings
 
 # Set a logger

@@ -9,10 +9,11 @@ logger.setLevel('INFO')
 
 
 class SidBERTDataloader(tf.keras.utils.Sequence):
-    def __init__(self, dataset, batch_size=16, max_length=300):
+    def __init__(self, dataset, batch_size=16, max_length=300, generator_mode=False):
         self.classes = tf.keras.utils.to_categorical(dataset['DDC'].values)
         self.titles = dataset['Title'].values
         self.indices = np.arange(len(self.titles))
+        self.generator_mode = generator_mode
         self.batch_size = batch_size
         self.max_length = max_length
         self.tokenizer = transformers.BertTokenizer.from_pretrained('bert-base-multilingual-cased')
@@ -34,7 +35,11 @@ class SidBERTDataloader(tf.keras.utils.Sequence):
                                                               return_token_type_ids=True,
                                                               pad_to_max_length=True,
                                                               return_tensors="tf",).data
-        return tokenized_encoding, classes
+        if self.generator_mode:
+            return tokenized_encoding
+        else:
+            return tokenized_encoding, classes
 
     def on_epoch_end(self):
-        np.random.RandomState(42).shuffle(self.indices)
+        if not self.generator_mode:
+            np.random.RandomState(42).shuffle(self.indices)

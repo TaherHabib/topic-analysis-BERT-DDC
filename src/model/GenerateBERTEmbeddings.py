@@ -1,15 +1,16 @@
-from src.preprocessing import DatasetProcessing, Dataloaders
+from models.preprocessing.dataset_processing import DatasetCreator
+from models.utils import DataLoaders
 import transformers
 import tensorflow as tf
-from src.model import config
+from models.configs import config
 import os
 import glob
 import h5py
 import numpy as np
 
 def generate_bert_embeddings():
-    dataset, empty_test, inbalance = DatasetProcessing.DatasetCreator().generate_dataset(even=False, train_test_ratio=0)
-    datlo = Dataloaders.SidBERTDataloader(batch_size=64, max_length=config.max_length, dataset=dataset, generator_mode=True)
+    dataset, empty_test, inbalance = DatasetCreator().generate_dataset(even=False, train_test_ratio=0)
+    datlo = DataLoaders.SidBERTDataloader(batch_size=64, max_length=config.max_length, dataset=dataset, generator_mode=True)
     model = build_vanilla_bert()
 
     for n, index in enumerate(datlo):

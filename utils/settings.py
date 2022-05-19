@@ -37,7 +37,8 @@ def get_datafile_ids(download_trained_models=False, download_course_data=False):
     """
 
     file_ids = {
-        'bert_compressed_pooler_embeddings': {'id': '1wOZHY8ij2j24Retluk6UazcP0aN3a-y4', 'dir': 'model_data/'}
+        'bert_compressed_pooler_embeddings': {'id': '1wOZHY8ij2j24Retluk6UazcP0aN3a-y4', 'dir': 'model_data/'},
+        'dataframe_embeddings_index': {'id': '1BkC6lVOHKFZO2XnV2TDdVpubZ5jTybbv', 'dir': 'model_data/'}
         }
 
     folder_ids = {

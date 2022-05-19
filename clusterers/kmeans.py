@@ -4,7 +4,7 @@ import numpy as np
 
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score, adjusted_rand_score, adjusted_mutual_info_score, davies_bouldin_score
-from src_utils import settings
+from utils import settings
 from .cluster_utils import compute_dunn_index, compute_cluster_sizes
 
 # Set a logger
@@ -18,7 +18,7 @@ handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s : %(levelname)s :
 project_root = settings.get_project_root()
 
 
-class KMEANS_CLUSTERER:
+class KmeansClusterer:
     def __init__(self,
                  n_clusters_range=None,
                  init_range=None,

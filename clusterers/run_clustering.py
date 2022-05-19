@@ -3,9 +3,9 @@ import logging
 import numpy as np
 import pandas as pd
 
-from src_utils import settings
-from src.clusterers.kmeans import KMEANS_CLUSTERER
-from src.clusterers.dbscan import DBSCAN_CLUSTERER
+from utils import settings
+from clusterers.kmeans import KmeansClusterer
+from clusterers.dbscan import DbscanClusterer
 
 # Set a logger
 logger = logging.getLogger()
@@ -44,7 +44,7 @@ if __name__ == '__main__':
     pca_dataframe = pd.read_hdf(os.path.join(project_root, 'src', 'data', 'SidBERT_data', 'pca',
                                              pca_dir_name, 'df_book_ddc.hdf5'), mode='r', key='df_book_ddc')
     with np.load(os.path.join(project_root, 'src', 'data', 'SidBERT_data', 'pca', pca_dir_name,
-                              pca_embeddings_filename.replace('.npz','') + '.npz'), allow_pickle=True) as dt:
+                              pca_embeddings_filename.replace('.npz', '') + '.npz'), allow_pickle=True) as dt:
         pca_embeddings = dict(dt)
 
     reduced_embeddings = pca_embeddings['reduced_emb']
@@ -66,9 +66,9 @@ if __name__ == '__main__':
         for k in kmeans_hyperparams.keys():
             num_trials = num_trials * len(kmeans_hyperparams[k])
         logger.info('Performing/Optimizing K-means. Total {} trials must be recorded...'.format(num_trials))
-        kmeans_clusterer = KMEANS_CLUSTERER(n_clusters_range=kmeans_hyperparams['n_clusters_range'],
-                                            init_range=kmeans_hyperparams['init_range'],
-                                            max_iter_range=kmeans_hyperparams['max_iter_range'])
+        kmeans_clusterer = KmeansClusterer(n_clusters_range=kmeans_hyperparams['n_clusters_range'],
+                                           init_range=kmeans_hyperparams['init_range'],
+                                           max_iter_range=kmeans_hyperparams['max_iter_range'])
         kmeans_trial_idx, kmeans_trial_results_ = kmeans_clusterer.fit_kmeans(data=reduced_embeddings,
                                                                               true_labels=real_labels,
                                                                               return_result=True,
@@ -102,8 +102,8 @@ if __name__ == '__main__':
         for k in dbscan_hyperparams.keys():
             num_trials = num_trials * len(dbscan_hyperparams[k])
         logger.info('Performing/Optimizing K-means. Total {} trials must be recorded...'.format(num_trials))
-        dbscan_clusterer = DBSCAN_CLUSTERER(eps_range=dbscan_hyperparams['eps_range'],
-                                            min_samples_range=dbscan_hyperparams['min_samples_range'])
+        dbscan_clusterer = DbscanClusterer(eps_range=dbscan_hyperparams['eps_range'],
+                                           min_samples_range=dbscan_hyperparams['min_samples_range'])
         dbscan_trial_idx, dbscan_trial_results_ = dbscan_clusterer.fit_dbscan(data=reduced_embeddings,
                                                                               true_labels=real_labels,
                                                                               return_result=True,

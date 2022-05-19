@@ -1,4 +1,4 @@
-# Dataset src_utils and sample selection
+# Dataset utils and sample selection
 dataset_name = 'full_dataset_010322_nan_cleaned.csv'
 select_one_level = True
 select_level = 1

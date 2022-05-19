@@ -10,7 +10,7 @@ import logging
 import re
 import csv
 import json
-from src_utils import settings
+from utils import settings
 
 from models.utils.original_ddc_loader import load_classes_from_tsv, create_ddc_label_lookup
 

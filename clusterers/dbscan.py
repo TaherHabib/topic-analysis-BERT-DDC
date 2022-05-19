@@ -4,7 +4,7 @@ import numpy as np
 
 from sklearn.cluster import DBSCAN, OPTICS
 from sklearn.metrics import silhouette_score, adjusted_rand_score, adjusted_mutual_info_score, davies_bouldin_score
-from utils import settings
+from src_utils import settings
 from .cluster_utils import compute_dunn_index, compute_cluster_centers, compute_cluster_sizes, get_num_dbscan_clusters
 
 # Set a logger
@@ -18,7 +18,7 @@ handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s : %(levelname)s :
 project_root = settings.get_project_root()
 
 
-class DbscanClusterer:
+class DBSCAN_CLUSTERER:
     def __init__(self,
                  eps_range=None,
                  min_samples_range=None,

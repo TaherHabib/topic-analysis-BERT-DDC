@@ -6,7 +6,7 @@ import logging
 from models.configs import config
 from models.utils import custom_decay
 from models.utils.DataLoaders import SidBERTDataloader
-from utils import settings
+from src_utils import settings
 
 # Set a logger
 logger = logging.getLogger('OmegaBERT')

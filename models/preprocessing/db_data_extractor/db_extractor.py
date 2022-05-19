@@ -1,7 +1,6 @@
 import pandas as pd
 import numpy as np
 
-
 class PreprocessingDatahandler:
     def __init__(self):
         self.data_path = './src/data/p3_dump/'

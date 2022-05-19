@@ -4,7 +4,7 @@ import logging
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler, MinMaxScaler, RobustScaler
 from src.SidBERT.embeddings_generator import load_embeddings
-from utils import settings
+from src_utils import settings
 
 # Set a logger
 logger = logging.getLogger()

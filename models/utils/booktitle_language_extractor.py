@@ -6,7 +6,7 @@ from langdetect import DetectorFactory, detect_langs
 from iso639 import languages
 
 from models.utils.original_ddc_loader import load_classes_from_tsv
-from utils import settings
+from src_utils import settings
 
 # Set a logger
 logger = logging.getLogger()

@@ -5,8 +5,8 @@ import pandas as pd
 from langdetect import DetectorFactory, detect_langs
 from iso639 import languages
 
-from models.utils.original_ddc_loader import load_classes_from_tsv
-from src_utils import settings
+from models.preprocessing.original_ddc_loader import load_classes_from_tsv
+from utils import settings
 
 # Set a logger
 logger = logging.getLogger()
@@ -17,6 +17,7 @@ handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s : %(levelname)s :
 logger.addHandler(handler)
 
 project_root = settings.get_project_root()
+data_root = settings.get_data_root()
 
 
 def language_detector(text):
@@ -36,11 +37,15 @@ def language_detector(text):
     return language_list, lang_prob_list
 
 
-def extract_book_language(root_classes=None, original_only=True, include_root_class=True,
-                          include_language=True, include_lang_probs=False,
-                          exclude=None, aggregate_level=None, random_seed=0,
+def extract_book_language(root_classes=None,
+                          original_only=True,
+                          include_root_class=True,
+                          include_language=True,
+                          include_lang_probs=False,
+                          exclude=None,
+                          aggregate_level=None,
+                          random_seed=0,
                           save_to_disk=False):
-    data_path = os.path.join(project_root, 'src', 'data', 'SidBERT_data')
 
     if root_classes:
         root_classes = root_classes
@@ -48,11 +53,11 @@ def extract_book_language(root_classes=None, original_only=True, include_root_cl
         root_classes = list(np.arange(10).astype('str'))  # all 10 root classes
 
     df_class_data = []
-    original_classes = load_classes_from_tsv(os.path.join(data_path, 'bert_data', 'classes.tsv'))
+    original_classes = load_classes_from_tsv(os.path.join(data_root, 'datasets', 'book_ddc_data', 'classes.tsv'))
 
     for class_index in root_classes:
         logger.info('Loading data for class: {}'.format(class_index))
-        data = pd.read_csv(os.path.join(data_path, 'pooler_output', 'samples_ddc_class_' + class_index + '.csv'),
+        data = pd.read_csv(os.path.join(data_root, 'model_data', 'pooler_output', 'samples_ddc_class_'+class_index+'.csv'),
                            usecols=['index', 'Title', 'DDC', 'Description'])
         if exclude:
             data = data.loc[~data['DDC'].isin(exclude)]
@@ -98,7 +103,7 @@ def extract_book_language(root_classes=None, original_only=True, include_root_cl
                                                                        original_only,
                                                                        include_language,
                                                                        include_lang_probs)
-        dataset.to_csv(os.path.join(data_path, 'book_ddc_data', df_filename + '.csv'))
+        dataset.to_csv(os.path.join(data_root, 'datasets', df_filename + '.csv'))
 
     logger.info('Returning requested data...')
     return dataset
@@ -117,3 +122,6 @@ if __name__ == '__main__':
                                include_language=include_language,
                                include_lang_probs=include_lang_probs,
                                save_to_disk=save_to_disk)
+
+    # TODO: Finish writing this script (complete usage is in jupyter notebook)
+    # TODO: Use the correct data path in line 60 above

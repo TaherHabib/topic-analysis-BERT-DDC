@@ -10,9 +10,9 @@ import logging
 import re
 import csv
 import json
-from src_utils import settings
+from utils import settings
 
-from models.utils.original_ddc_loader import load_classes_from_tsv, create_ddc_label_lookup
+from models.preprocessing.original_ddc_loader import load_classes_from_tsv, create_ddc_label_lookup
 
 # Set a logger
 logger = logging.getLogger()
@@ -23,14 +23,14 @@ handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s : %(levelname)s :
 logger.addHandler(handler)
 
 project_root = settings.get_project_root()
+data_root = settings.get_data_root()
 
 
 class DDCBookExtractor:
     def __init__(self):
 
-        path = join(project_root, 'src', 'data', 'SidBERT_data')
-        self.data_path = join(path, 'book_ddc_data')
-        self.classes = load_classes_from_tsv(join(path, 'bert_data', 'classes.tsv'))
+        self.data_path = join(data_root, 'datasets', 'book_ddc_data')
+        self.classes = load_classes_from_tsv(join(self.data_path, 'classes.tsv'))
         self.class_position_hash = create_ddc_label_lookup(self.classes)
 
         self.uos_frame = None
@@ -47,7 +47,7 @@ class DDCBookExtractor:
         :return: pandas dataframe object containing all book entries from both libraries
         """
         def parse_UB_data():
-            file_name = join(self.data_path, "ddc.jsonl")
+            file_name = join(self.data_path, 'ddc.jsonl')
             label_dict = {'ISBN': [],
                           'Title': [],
                           'DDC': [],
@@ -156,7 +156,7 @@ class DDCBookExtractor:
 
             ###
 
-            file_name = join(self.data_path, "bestand_0700_20181231_isbn_ddc.csv")
+            file_name = join(self.data_path, 'bestand_0700_20181231_isbn_ddc.csv')
 
             existing_dict = {'ISBN': [],
                              'Title': [],

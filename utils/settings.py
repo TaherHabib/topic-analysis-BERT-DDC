@@ -11,7 +11,7 @@ def get_project_root():
     return os.path.abspath(Path(__file__).parent.parent)
 
 
-def get_data_path():
+def get_data_root():
     """
     For setting data directory independent of OS.
     :return: path to data directory

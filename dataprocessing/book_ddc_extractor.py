@@ -12,7 +12,7 @@ import csv
 import json
 from utils import settings
 
-from models.preprocessing.original_ddc_loader import load_classes_from_tsv, create_ddc_label_lookup
+from dataprocessing.original_ddc_loader import load_classes_from_tsv, create_ddc_label_lookup
 
 # Set a logger
 logger = logging.getLogger()

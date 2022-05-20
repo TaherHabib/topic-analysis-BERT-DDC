@@ -5,7 +5,7 @@ import pandas as pd
 from langdetect import DetectorFactory, detect_langs
 from iso639 import languages
 
-from models.preprocessing.original_ddc_loader import load_classes_from_tsv
+from dataprocessing.original_ddc_loader import load_classes_from_tsv
 from utils import settings
 
 # Set a logger

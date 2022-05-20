@@ -226,3 +226,6 @@ if __name__ == '__main__':
 
     ddc_extractor = DDCBookExtractor()
     dataset = ddc_extractor.parse_collect_raw_data()  # DF 5 columns: [index, ISBN, Title, DDc, Description]
+
+    # Save the full raw dataset
+    dataset.to_csv(join(data_root, 'datasets', 'full_dataset.csv'))

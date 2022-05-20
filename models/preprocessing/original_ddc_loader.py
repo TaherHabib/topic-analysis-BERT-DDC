@@ -6,20 +6,14 @@ Only these 905 classes are used for training and analysis
 import pandas as pd
 
 
-def load_classes_from_tsv(class_path):
+def load_classes_from_tsv(file_path):
     """
     loads all label IDs from the classes.tsv file
     :return:list of DDC classes in the scope of the models.
     :rtype: list object
     """
-    try:
-        classes_frame = pd.read_csv(class_path, delimiter='\t', names=['DDC'], dtype=str)
-    except FileNotFoundError as fnf_e:
-        print(fnf_e)
-        print('Check whether the argument \'class_path\' is a valid directory or'
-              'points to an existing file')
-    else:
-        return classes_frame['DDC'].to_list()
+    classes_frame = pd.read_csv(file_path, delimiter='\t', names=['DDC'], dtype=str)
+    return classes_frame['DDC'].to_list()
 
 
 def create_ddc_label_lookup(classes_list):

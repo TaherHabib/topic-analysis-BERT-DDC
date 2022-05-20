@@ -38,7 +38,7 @@ class DDCBookExtractor:
         self.crawled_frame = None
         self.TIB_frame = None
 
-    def parse_and_collect_raw_data(self):
+    def parse_collect_raw_data(self):
         """
         This function loads the raw data from files provided by the University of Bremen (UB)
         and university of Osnabrück (UOS). As the file format and parsing differ in both files,
@@ -225,4 +225,4 @@ class DDCBookExtractor:
 if __name__ == '__main__':
 
     ddc_extractor = DDCBookExtractor()
-    dataset = ddc_extractor.parse_and_collect_raw_data()  # DF 5 columns: [index, ISBN, Title, DDc, Description]
+    dataset = ddc_extractor.parse_collect_raw_data()  # DF 5 columns: [index, ISBN, Title, DDc, Description]

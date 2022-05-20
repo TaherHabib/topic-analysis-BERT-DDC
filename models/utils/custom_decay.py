@@ -6,7 +6,7 @@ def schedule(epoch, lr):
     if epoch <= 1:
         return lr
     else:
-        return lr - lr * np.log10(epoch)
+        return lr * np.sqrt(3)**(1-epoch)
 
 
 def get_scheduler():

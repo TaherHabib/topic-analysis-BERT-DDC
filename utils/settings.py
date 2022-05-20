@@ -11,7 +11,7 @@ def get_project_root():
     return os.path.abspath(Path(__file__).parent.parent)
 
 
-def get_data_path():
+def get_data_root():
     """
     For setting data directory independent of OS.
     :return: path to data directory
@@ -37,7 +37,8 @@ def get_datafile_ids(download_trained_models=False, download_course_data=False):
     """
 
     file_ids = {
-        'bert_compressed_pooler_embeddings': {'id': '1wOZHY8ij2j24Retluk6UazcP0aN3a-y4', 'dir': 'model_data/'}
+        'bert_compressed_pooler_embeddings': {'id': '1wOZHY8ij2j24Retluk6UazcP0aN3a-y4', 'dir': 'model_data/'},
+        'dataframe_embeddings_index': {'id': '1BkC6lVOHKFZO2XnV2TDdVpubZ5jTybbv', 'dir': 'model_data/'}
         }
 
     folder_ids = {

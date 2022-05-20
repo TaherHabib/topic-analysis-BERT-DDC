@@ -3,8 +3,8 @@ import numpy as np
 import logging
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler, MinMaxScaler, RobustScaler
-from src.SidBERT.embeddings_generator import load_embeddings
-from src_utils import settings
+from models.embeddings_generator import load_embeddings
+from utils import settings
 
 # Set a logger
 logger = logging.getLogger()
@@ -150,5 +150,4 @@ if __name__ == '__main__':
                             return_result=False,
                             save_to_disk=True,
                             file_args=file_args)
-
 

@@ -3,9 +3,9 @@ import logging
 import numpy as np
 import pandas as pd
 
-from src_utils import settings
-from src.reducers.tsne import TSNEReducer
-from src.reducers.umap import UMAPReducer
+from utils import settings
+from reducers.tsne import TSNEReducer
+from reducers.umap import UMAPReducer
 
 # Set a logger
 logger = logging.getLogger()

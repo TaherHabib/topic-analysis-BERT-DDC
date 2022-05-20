@@ -1,4 +1,4 @@
-from bash import bash
+import bash
 import os
 import argparse
 import logging
@@ -6,7 +6,7 @@ from pydrive.auth import GoogleAuth
 from pydrive.drive import GoogleDrive
 import gdown
 
-from src_utils import settings
+from utils import settings
 
 # Set a logger
 logger = logging.getLogger()
@@ -56,10 +56,6 @@ def authenticate_login():
 
 
 def bash_data_dvc_download(command, dataset):
-    '''
-        download data from google drive using dvc
-    '''
-    # define bash command
 
     dvc_pull = bash(f'wg')
     if dvc_pull.code == 0:

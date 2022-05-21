@@ -1,12 +1,9 @@
-import bash
 import os
+import yaml
 import argparse
 import logging
-from pydrive.auth import GoogleAuth
-from pydrive.drive import GoogleDrive
-import gdown
-
 from utils import settings
+from utils.data_utils import gdrive_data_download as gdd
 
 # Set a logger
 logger = logging.getLogger()
@@ -21,75 +18,39 @@ parser = argparse.ArgumentParser(description='Fetch data from cloud google drive
 parser.add_argument('-m', '--trained_models', dest='download_trained_models', action='store', nargs='?', const=True,
                     default=False, help='Whether to download trained classification head model weights. '
                                         'Specifying only short flag without any argument sets value to True.')
+parser.add_argument('-b', '--book_data', dest='download_book_ddc_data', action='store', nargs='?', const=True,
+                    default=False, help='Whether to download book titles data files (raw). Specifying only short flag '
+                                        'without any argument sets value to True.')
 parser.add_argument('-c', '--course_data', dest='download_course_data', action='store', nargs='?', const=True,
                     default=False, help='Whether to download course data files (raw). Specifying only short flag '
                                         'without any argument sets value to True.')
-parser.add_argument('-v', '--verbose', dest='verbose', action='store', nargs='?', const=True, default=True,
+parser.add_argument('-v', '--verbose', dest='verbose', action='store', nargs='?', const=True, default=False,
                     help='Verbosity of entire download and data setup process.')
-
-
-def authenticate_login():
-    gauth = GoogleAuth()
-
-    # Try to load saved client credentials
-    gauth.LoadCredentialsFile("mycreds.txt")
-
-    if gauth.credentials is None:
-        # Authenticate if they're not there
-
-        # This is what solved the issues:
-        gauth.GetFlow()
-        gauth.flow.params.update({'access_type': 'offline'})
-        gauth.flow.params.update({'approval_prompt': 'force'})
-        gauth.LocalWebserverAuth()
-
-    elif gauth.access_token_expired:
-        # Refresh them if expired
-        gauth.Refresh()
-    else:
-        # Initialize the saved creds
-        gauth.Authorize()
-
-    # Save the current credentials to a file
-    gauth.SaveCredentialsFile("mycreds.txt")
-    drive = GoogleDrive(gauth)
-
-
-def bash_data_dvc_download(command, dataset):
-
-    dvc_pull = bash(f'wg')
-    if dvc_pull.code == 0:
-        print('Data download successful')
-    else:
-        print('Error encountered please see the log !!!')
-        print(dvc_pull.stderr)
 
 
 if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    data_path = settings.get_data_path()
-    gdrive_url_domain_file, gdrive_url_domain_folder = settings.get_gdrive_domain()
-    if not os.path.exists(data_path):
-        os.makedirs(data_path)
+    data_root = settings.get_data_root()
+    if not os.path.exists(data_root):
+        os.makedirs(data_root)
 
-    logger.info('Getting IDs of file and folders on Google Drive')
-    file_ids, folder_ids = settings.get_datafile_ids(download_trained_models=args.download_trained_models,
-                                                     download_course_data=args.download_course_data)
+    logger.info('Getting IDs of file and folders on Google Drive from YAML config file')
+    project_root = settings.get_project_root()
+    with open(os.path.join(project_root, 'configs', 'data_config.yml'), 'r') as f:
+        data_config = yaml.safe_load(f)
 
-    for file in file_ids.keys():
-        gdown.download(url=gdrive_url_domain_file + file_ids[file]['id'],
-                       quiet=not args.verbose,
-                       output=os.path.join(data_path, file_ids[file]['dir']))
+    downloader = gdd.GDriveDownloader(data_root=data_root,
+                                      data_config_yml=data_config,
+                                      download_trained_models=args.download_trained_models,
+                                      download_book_data=args.download_book_ddc_data,
+                                      download_course_data=args.download_course_data)
 
-    for folder in folder_ids.keys():
-        for idx, subfolder_id in enumerate(folder_ids[folder]['id']):
-            gdown.download_folder(url=gdrive_url_domain_folder + subfolder_id,
-                                  quiet=not args.verbose,
-                                  output=os.path.join(data_path, folder_ids[folder]['dir'][idx]))
+    downloader.download(verbose=args.verbose)
 
     logger.info('Download of data files completed at data/data_.')
+
 
 
 

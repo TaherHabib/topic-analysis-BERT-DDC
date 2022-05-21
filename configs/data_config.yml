@@ -1,0 +1,28 @@
+bert_compressed_pooler_embeddings:
+  ID: 1wOZHY8ij2j24Retluk6UazcP0aN3a-y4
+  outdir: model_data/
+book_ddc_data:
+  ID:
+  - 11aOHkVGWocMF3Fgx6dP8Il0JzoCjEdeh
+  outdir:
+  - datasets/book_ddc_data/
+course_data:
+  ID:
+  - 1qunWYgjhxA9DuekYk7k9YANsM-be3ouV
+  - 1vsKc1GnPYI1gpzKR4RVlhjIZEJX8NFCO
+  - 1gccj3w4hQje6QhCXG0w-is1-m27k0VGA
+  outdir:
+  - datasets/course_data/db_dump
+  - datasets/course_data/k_annonymized
+  - datasets/course_data/p3_dump
+dataframe_embeddings_index:
+  ID: 1BkC6lVOHKFZO2XnV2TDdVpubZ5jTybbv
+  outdir: model_data/
+full_dataset_nan_cleaned:
+  ID: 1UyhvYPAWS-wcKfjXoygdM3FMWb_7tQME
+  outdir: datasets/
+trained_models:
+  ID:
+  - 1RVvTpzw4ccEzN-4xsO2mGV-DfBQZaEuk
+  outdir:
+  - model_data/trained_models/

@@ -16,9 +16,6 @@ handler.setLevel(logging.INFO)
 handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s : %(levelname)s :- %(message)s'))
 logger.addHandler(handler)
 
-project_root = settings.get_project_root()
-data_root = settings.get_data_root()
-
 
 def language_detector(text):
     language_list = []
@@ -110,6 +107,10 @@ def extract_book_language(root_classes=None,
 
 
 if __name__ == '__main__':
+
+    project_root = settings.get_project_root()
+    data_root = settings.get_data_root()
+
     # classes_to_extract = ['1']
     original_only = True
     include_root_class = True

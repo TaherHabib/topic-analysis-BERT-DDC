@@ -10,7 +10,7 @@ import logging
 import re
 import csv
 import json
-from utils import settings
+
 
 from dataprocessing.original_ddc_loader import load_classes_from_tsv, create_ddc_label_lookup
 
@@ -22,12 +22,9 @@ handler.setLevel(logging.INFO)
 handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s : %(levelname)s :- %(message)s'))
 logger.addHandler(handler)
 
-project_root = settings.get_project_root()
-data_root = settings.get_data_root()
-
 
 class DDCBookExtractor:
-    def __init__(self):
+    def __init__(self, data_root):
 
         self.data_path = join(data_root, 'datasets', 'book_ddc_data')
         self.classes = load_classes_from_tsv(join(self.data_path, 'classes.tsv'))
@@ -221,11 +218,3 @@ class DDCBookExtractor:
         complete_frame = complete_frame.dropna(subset=['DDC'], ).drop_duplicates(subset=['Title']).reset_index()
         return complete_frame
 
-
-if __name__ == '__main__':
-
-    ddc_extractor = DDCBookExtractor()
-    dataset = ddc_extractor.parse_collect_raw_data()  # DF 5 columns: [index, ISBN, Title, DDc, Description]
-
-    # Save the full raw dataset
-    dataset.to_csv(join(data_root, 'datasets', 'full_dataset.csv'))

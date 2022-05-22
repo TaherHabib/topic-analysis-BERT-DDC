@@ -1,0 +1,16 @@
+balanced_class_distribution: false
+batch_size: 64
+classes: 10
+dataset_filename: full_dataset_nan_cleaned.csv
+ddc_level: 1
+delta_metric:
+- acc
+delta_threshold: 0.005
+learning_rate: 0.05
+max_length: 300
+min_title_length: 20
+patience: 4
+test_size: 0.1
+train_to_convergence: true
+training_epochs: 50
+use_custom_learning_schedule: true

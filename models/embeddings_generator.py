@@ -3,8 +3,8 @@ import os
 import numpy as np
 import pandas as pd
 
-from models.utils.original_ddc_loader import load_classes_from_tsv
-from models.preprocessing import book_ddc_extractor
+from dataprocessing.original_ddc_loader import load_classes_from_tsv
+from dataprocessing import book_ddc_extractor
 from models import SidBERT
 from utils import settings
 
@@ -44,7 +44,7 @@ def generate_embeddings(prune_at_layer='pooler_output'):
     sidbert = SidBERT.SidBERT(train=None, test=None)
 
     # Load the entire dataset of 1315988 book title entries, their DDC classes, etc.
-    dataset = ddc_extractor.parse_and_collect_raw_data()  # Dataframe with
+    dataset = ddc_extractor.parse_collect_raw_data()  # Dataframe with
     # 5 columns: [index, ISBN, Title, DDc, Description]
 
     for class_index in np.arange(0, 10):

@@ -5,7 +5,11 @@ import logging
 
 # Set a logger
 logger = logging.getLogger('Dataloader')
-logger.setLevel('INFO')
+logger.setLevel(logging.INFO)
+handler = logging.StreamHandler()
+handler.setLevel(logging.INFO)
+handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s : %(levelname)s :- %(message)s'))
+# logger.addHandler(handler)
 
 
 class SidBERTDataloader(tf.keras.utils.Sequence):
@@ -17,7 +21,7 @@ class SidBERTDataloader(tf.keras.utils.Sequence):
         self.batch_size = batch_size
         self.max_length = max_length
         self.tokenizer = transformers.BertTokenizer.from_pretrained('bert-base-multilingual-cased')
-        logger.info(f'Sucessfully initalized Dataloader with batch size {self.batch_size} and sequence length {self.max_length}')
+        logger.info(f'Successfully initialized Dataloader with batch size {self.batch_size} and sequence length {self.max_length}')
 
     def __len__(self):
         return len(self.titles) // self.batch_size
@@ -25,7 +29,6 @@ class SidBERTDataloader(tf.keras.utils.Sequence):
     def __getitem__(self, index):
         local_indices = self.indices[index * self.batch_size:(index + 1) * self.batch_size]
         sentence = self.titles[local_indices]
-        classes = self.classes[local_indices]
         tokenized_encoding = self.tokenizer.batch_encode_plus(sentence,
                                                               add_special_tokens=True,
                                                               padding='max_length',
@@ -38,8 +41,9 @@ class SidBERTDataloader(tf.keras.utils.Sequence):
         if self.generator_mode:
             return tokenized_encoding
         else:
-            return tokenized_encoding, classes
+            return tokenized_encoding, self.classes[local_indices]
 
     def on_epoch_end(self):
         if not self.generator_mode:
             np.random.RandomState(42).shuffle(self.indices)
+

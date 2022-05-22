@@ -1,6 +1,5 @@
 """
 Extracts the original 905 DDC classes from the classes.tsv file in the 'data' directory.
-Only these 905 classes are used for training and analysis
 """
 
 import pandas as pd

@@ -5,7 +5,7 @@ import pandas as pd
 from langdetect import DetectorFactory, detect_langs
 from iso639 import languages
 
-from dataprocessing.original_ddc_loader import load_classes_from_tsv
+from utils.data_utils import original_ddc_loader as odl
 from utils import settings
 
 # Set a logger
@@ -50,7 +50,7 @@ def extract_book_language(root_classes=None,
         root_classes = list(np.arange(10).astype('str'))  # all 10 root classes
 
     df_class_data = []
-    original_classes = load_classes_from_tsv(os.path.join(data_root, 'datasets', 'book_ddc_data', 'classes.tsv'))
+    original_classes = odl.load_classes_from_tsv(os.path.join(data_root, 'datasets', 'book_ddc_data', 'classes.tsv'))
 
     for class_index in root_classes:
         logger.info('Loading data for class: {}'.format(class_index))
@@ -124,5 +124,5 @@ if __name__ == '__main__':
                                include_lang_probs=include_lang_probs,
                                save_to_disk=save_to_disk)
 
-    # TODO: Finish writing this script (complete usage is in jupyter notebook)
+    # TODO: Finish writing this script (complete usage is in jupyter notebook) – make it module instead of script
     # TODO: Use the correct data path in line 60 above

@@ -3,7 +3,7 @@ import os
 import numpy as np
 import pandas as pd
 
-from dataprocessing.original_ddc_loader import load_classes_from_tsv
+from utils.data_utils import original_ddc_loader as odl
 from dataprocessing import book_ddc_extractor
 from models import SidBERT
 from utils import settings
@@ -93,7 +93,7 @@ def load_embeddings(root_classes=None, n_samples=None, layer='pooler_output',
 
     df_extracted_class_data = []
     list_extracted_class_emb = []
-    original_classes = load_classes_from_tsv(os.path.join(data_path, 'bert_data', 'classes.tsv'))
+    original_classes = odl.load_classes_from_tsv(os.path.join(data_path, 'bert_data', 'classes.tsv'))
 
     for class_index in root_classes:
         logger.info('Loading embeddings for class: {}'.format(class_index))

@@ -11,8 +11,7 @@ import re
 import csv
 import json
 
-
-from dataprocessing.original_ddc_loader import load_classes_from_tsv, create_ddc_label_lookup
+from utils.data_utils import original_ddc_loader as odl
 
 # Set a logger
 logger = logging.getLogger()
@@ -27,8 +26,8 @@ class DDCBookExtractor:
     def __init__(self, data_root):
 
         self.data_path = join(data_root, 'datasets', 'book_ddc_data')
-        self.classes = load_classes_from_tsv(join(self.data_path, 'classes.tsv'))
-        self.class_position_hash = create_ddc_label_lookup(self.classes)
+        self.classes = odl.load_classes_from_tsv(join(self.data_path, 'classes.tsv'))
+        self.class_position_hash = odl.create_ddc_label_lookup(self.classes)
 
         self.uos_frame = None
         self.ub_frame = None

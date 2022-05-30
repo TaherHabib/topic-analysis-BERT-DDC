@@ -18,33 +18,40 @@ class DatasetCreator:
     def __init__(self,
                  dataset_filename=None,
                  aggregate_ddc_level=1,
+                 include_description=False,
                  min_title_length=20,
                  test_size=0.2,
                  balanced_class_distribution=False):
 
         self.dataset_filename = dataset_filename
         self.aggregate_ddc_level = aggregate_ddc_level
+        self.include_description = include_description
         self.min_title_length = min_title_length
         self.test_size = test_size
         self.balanced_class_distribution = balanced_class_distribution
 
-    def generate_final_dataset(self):
+    def generate_final_dataset(self, embeddings_generator_mode=False):
 
         data_root = settings.get_data_root()
-        raw_dataset = pd.read_csv(os.path.join(data_root, 'datasets', self.dataset_filename), dtype='str')
+        raw_dataset = pd.read_csv(os.path.join(data_root, 'datasets', self.dataset_filename), low_memory=False)
 
         logger.info('Aggregating DDC codes in dataset – to top-level 10 parent classes when aggregate_ddc_level=1')
         dataset_ = self.aggregate_to_level(dataset=raw_dataset, aggregate_ddc=self.aggregate_ddc_level)
 
-        logger.info('Removing rows with book titles less than \'min_title_length\' characters long')
-        dataset_ = self.remove_titles_below_length(dataset=dataset_, min_length=self.min_title_length)
+        logger.info('Removing rows with book titles (+ descriptions) less than \'min_title_length\' characters long')
+        dataset_ = self.remove_titles_below_length(dataset=dataset_,
+                                                   include_descriptions=self.include_description,
+                                                   min_length=self.min_title_length)
 
-        logger.info('Preparing train and test dataset + class distribution dictionary')
-        train_df, test_df, class_weights = self.prepare_train_test_data(dataset=dataset_,
-                                                                        test_size=self.test_size,
-                                                                        balance_class_distribution=self.balanced_class_distribution)
-
-        return train_df, test_df, class_weights
+        if embeddings_generator_mode:
+            logger.info('Preparing dataset containing only the titles and/or descriptions')
+            return dataset_[['Title', 'Description']]
+        else:
+            logger.info('Preparing train and test dataset + class distribution dictionary')
+            train_df, test_df, class_weights = self.prepare_train_test_data(dataset=dataset_,
+                                                                            test_size=self.test_size,
+                                                                            balance_class_distribution=self.balanced_class_distribution)
+            return train_df, test_df, class_weights
 
     @staticmethod
     def aggregate_to_level(dataset, aggregate_ddc):
@@ -52,8 +59,12 @@ class DatasetCreator:
         return dataset
 
     @staticmethod
-    def remove_titles_below_length(dataset, min_length):
-        filtered_df = dataset.loc[dataset['Title'].str.len() >= min_length]
+    def remove_titles_below_length(dataset, include_descriptions, min_length):
+        if not include_descriptions:
+            filtered_df = dataset.loc[dataset['Title'].str.len() >= min_length]
+        else:
+            filtered_df = dataset.loc[dataset['Title'].str.len() >= min_length]
+
         return filtered_df.reset_index(drop=True).rename({'Unnamed: 0': 'orig_index'}, axis=1)
 
     @staticmethod

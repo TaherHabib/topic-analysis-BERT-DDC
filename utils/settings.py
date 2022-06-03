@@ -1,6 +1,8 @@
 from pathlib import Path
 import os
 
+HF_model_name = 'bert-base-multilingual-cased'
+
 
 def get_project_root():
     """

@@ -24,7 +24,7 @@ parser.add_argument('-b', '--book_data', dest='download_book_ddc_data', action='
 parser.add_argument('-c', '--course_data', dest='download_course_data', action='store', nargs='?', const=True,
                     default=False, help='Whether to download course data files (raw). Specifying only short flag '
                                         'without any argument sets value to True.')
-parser.add_argument('-v', '--verbose', dest='verbose', action='store', nargs='?', const=True, default=False,
+parser.add_argument('-v', '--verbose', dest='verbose', action='store_true',
                     help='Verbosity of entire download and data setup process.')
 
 

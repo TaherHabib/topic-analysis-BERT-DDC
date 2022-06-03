@@ -1,8 +1,6 @@
+aggregate_ddc_level: 1
 balanced_class_distribution: false
 batch_size: 64
-classes: 10
-dataset_filename: full_dataset_nan_cleaned.csv
-ddc_level: 1
 delta_metric:
 - acc
 delta_threshold: 0.005

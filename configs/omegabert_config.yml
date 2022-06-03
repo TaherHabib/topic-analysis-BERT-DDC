@@ -1,0 +1,8 @@
+freeze_bert_layers: true
+leaky_relu_alpha: 0.15
+model_layers:
+- pooler_output
+- sequence_output
+- dense_2048
+- dense_1024
+- dense_256

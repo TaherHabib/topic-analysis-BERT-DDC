@@ -1,0 +1,6 @@
+freeze_bert_layers: true
+model_layers:
+- pooler_output
+- sequence_output
+- dense_3000
+- dense_2048

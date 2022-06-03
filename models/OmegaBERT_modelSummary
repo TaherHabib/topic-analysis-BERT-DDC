@@ -1,0 +1,42 @@
+Model: "model_2"
+__________________________________________________________________________________________________
+ Layer (type)                   Output Shape         Param #     Connected to                     
+==================================================================================================
+ input_ids (InputLayer)         [(None, 300)]        0           []                               
+                                                                                                  
+ attention_mask (InputLayer)    [(None, 300)]        0           []                               
+                                                                                                  
+ token_type_ids (InputLayer)    [(None, 300)]        0           []                               
+                                                                                                  
+ tf_bert_model (TFBertModel)    TFBaseModelOutputWi  177853440   ['input_ids[0][0]',              
+                                thPoolingAndCrossAt               'attention_mask[0][0]',         
+                                tentions(last_hidde               'token_type_ids[0][0]']         
+                                n_state=(None, 300,                                               
+                                 768),                                                            
+                                 pooler_output=(Non                                               
+                                e, 768),                                                          
+                                 past_key_values=No                                               
+                                ne, hidden_states=N                                               
+                                one, attentions=Non                                               
+                                e, cross_attentions                                               
+                                =None)                                                            
+                                                                                                  
+ dense_2048 (Dense)             (None, 2048)         1574912     ['tf_bert_model[1][1]']          
+                                                                                                  
+ b_norm_2048 (BatchNormalizatio  (None, 2048)        8192        ['dense_2048[0][0]']             
+ n)                                                                                               
+                                                                                                  
+ dense_1024 (Dense)             (None, 1024)         2098176     ['b_norm_2048[0][0]']            
+                                                                                                  
+ b_norm_1024 (BatchNormalizatio  (None, 1024)        4096        ['dense_1024[0][0]']             
+ n)                                                                                               
+                                                                                                  
+ dense_256 (Dense)              (None, 256)          262400      ['b_norm_1024[0][0]']            
+                                                                                                  
+ final (Dense)                  (None, 10)           2570        ['dense_256[0][0]']              
+                                                                                                  
+==================================================================================================
+Total params: 181,803,786
+Trainable params: 3,944,202
+Non-trainable params: 177,859,584
+__________________________________________________________________________________________________

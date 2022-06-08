@@ -61,8 +61,8 @@ class DatasetCreator:
 
         dataset = self._data_filtering()
 
-        # Sample number of entries equal to the 'num_samples' fraction of the dataset
         if 0 < num_samples <= 1:
+            logger.info('Sampling number of entries equal to the \'num_samples\' fraction of the dataset')
             num_samples = int(len(dataset)*num_samples)
             select_n_samples = np.random.choice(len(dataset), size=num_samples, replace=False)
             all_ = np.full(len(dataset), False, dtype='bool')
@@ -70,8 +70,8 @@ class DatasetCreator:
             sampled_dataset = dataset[all_].reset_index(drop=True)
             extracted_indices = np.array(sampled_dataset.orig_index)
 
-        # Sample number of entries equal to the 'num_samples' for each DDC class
         else:
+            logger.info('Sampling number of entries equal to the \'num_samples\' for each DDC class')
             try:
                 assert num_samples > dataset['DDC'].value_counts()[-1]
             except AssertionError:

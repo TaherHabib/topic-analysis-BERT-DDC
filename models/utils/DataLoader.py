@@ -4,14 +4,6 @@ import numpy as np
 import logging
 from utils.settings import HF_model_name
 
-# Set a logger
-logger = logging.getLogger('Dataloader')
-logger.setLevel(logging.INFO)
-handler = logging.StreamHandler()
-handler.setLevel(logging.INFO)
-handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s : %(levelname)s :- %(message)s'))
-# logger.addHandler(handler)
-
 
 class SidBERTDataloader(tf.keras.utils.Sequence):
     def __init__(self,
@@ -28,7 +20,6 @@ class SidBERTDataloader(tf.keras.utils.Sequence):
         self.batch_size = batch_size
         self.max_length = max_length
         self.tokenizer = transformers.BertTokenizer.from_pretrained(HF_model_name)
-        logger.info(f'Successfully initialized Dataloader with batch size {self.batch_size} and sequence length {self.max_length}')
 
     def __len__(self):
         return len(self.text_) // self.batch_size

@@ -11,47 +11,84 @@ logger.setLevel(logging.INFO)
 handler = logging.StreamHandler()
 handler.setLevel(logging.INFO)
 handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s : %(levelname)s :- %(message)s'))
-
-
 # logger.addHandler(handler)
+
+data_root = settings.get_data_root()
 
 
 class DatasetCreator:
     def __init__(self,
                  dataset_filename=None,
                  aggregate_ddc_level=1,
-                 min_title_length=20,
-                 test_size=0.2,
-                 balanced_class_distribution=False):
+                 columns_to_use=None,
+                 min_title_length=20):
+
+        if columns_to_use is None:
+            columns_to_use = ['Title']
 
         self.dataset_filename = dataset_filename
         self.aggregate_ddc_level = aggregate_ddc_level
+        self.columns_to_use = columns_to_use
         self.min_title_length = min_title_length
-        self.test_size = test_size
-        self.balanced_class_distribution = balanced_class_distribution
 
-    def generate_final_dataset(self, embeddings_generator_mode=False, columns_to_use=None):
+    def _data_filtering(self):
 
-        data_root = settings.get_data_root()
         raw_dataset = pd.read_csv(os.path.join(data_root, 'datasets', self.dataset_filename), low_memory=False)
 
         logger.info('Aggregating DDC codes in dataset – to top-level 10 parent classes when aggregate_ddc_level=1')
-        dataset_ = self.aggregate_to_level(dataset=raw_dataset, aggregate_ddc=self.aggregate_ddc_level)
+        dataset = self.aggregate_to_level(dataset=raw_dataset, aggregate_ddc=self.aggregate_ddc_level)
 
         logger.info('Removing rows with book titles (+ descriptions) less than \'min_title_length\' characters long')
-        dataset_ = self.remove_titles_below_length(dataset=dataset_,
-                                                   text_columns=columns_to_use,
-                                                   min_length=self.min_title_length)
+        dataset = self.remove_titles_below_length(dataset=dataset,
+                                                  text_columns=self.columns_to_use,
+                                                  min_length=self.min_title_length)
+        return dataset
 
+    def generate_dataset(self, embeddings_generator_mode=False, test_size=0.1, balanced_class_distribution=False):
+
+        dataset = self._data_filtering()
         if embeddings_generator_mode:
-            logger.info('Preparing dataset containing only the titles and/or descriptions')
-            return dataset_[['orig_index', 'text_', 'DDC']], None, None
+            logger.info('Preparing dataset containing only the titles and/or descriptions and DDC classes')
+            return dataset[['orig_index', 'text_', 'DDC']], None, None
         else:
             logger.info('Preparing train and test dataset + class distribution dictionary')
-            train_df, test_df, class_weights = self.prepare_train_test_data(dataset=dataset_,
-                                                                            test_size=self.test_size,
-                                                                            balance_class_distribution=self.balanced_class_distribution)
+            train_df, test_df, class_weights = self.prepare_train_test_data(dataset=dataset,
+                                                                            test_size=test_size,
+                                                                            balance_class_distribution=balanced_class_distribution)
             return train_df, test_df, class_weights
+
+    def sample_from_dataset(self, num_samples=None, random_state=None):
+
+        dataset = self._data_filtering()
+
+        # Sample number of entries equal to the 'num_samples' fraction of the dataset
+        if 0 < num_samples <= 1:
+            num_samples = int(len(dataset)*num_samples)
+            select_n_samples = np.random.choice(len(dataset), size=num_samples, replace=False)
+            all_ = np.full(len(dataset), False, dtype='bool')
+            all_[select_n_samples] = True
+            sampled_dataset = dataset[all_].reset_index(drop=True)
+            extracted_indices = np.array(sampled_dataset.orig_index)
+
+        # Sample number of entries equal to the 'num_samples' for each DDC class
+        else:
+            try:
+                assert num_samples > dataset['DDC'].value_counts()[-1]
+            except AssertionError:
+                raise ValueError('Samples drawn per DDC class must not be more than the number of samples in the '
+                                 'smallest DDC class.')
+            else:
+                sampled_dataset = pd.DataFrame()
+                for ddc_class in dataset['DDC'].unique():
+                    sub_frame = dataset.loc[dataset['DDC'] == ddc_class].sample(n=num_samples,
+                                                                                replace=False,
+                                                                                random_state=random_state)
+                    sampled_dataset = pd.concat([sampled_dataset, sub_frame])
+
+                sampled_dataset = sampled_dataset.reset_index(drop=True)
+                extracted_indices = np.array(sampled_dataset.orig_index)
+
+        return sampled_dataset, extracted_indices
 
     @staticmethod
     def aggregate_to_level(dataset, aggregate_ddc):
@@ -66,7 +103,7 @@ class DatasetCreator:
             #  column of 'filtered_df' named 'text_'
         else:
             filtered_df = dataset.loc[dataset[text_columns[0]].str.len() >= min_length]
-            filtered_df.rename({text_columns[0]: 'text_'}, axis=1)
+            filtered_df = filtered_df.rename({text_columns[0]: 'text_'}, axis=1)
 
         return filtered_df.reset_index(drop=True).rename({'Unnamed: 0': 'orig_index'}, axis=1)  # Keeping the column
         # containing original indices (from the raw dataset)

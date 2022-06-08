@@ -3,7 +3,7 @@ import numpy as np
 import logging
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
-from embeddings_generator import load_embeddings
+from models.embeddings_generator import load_embeddings
 from utils import settings
 
 # Set a logger

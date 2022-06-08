@@ -1,40 +1,37 @@
 import glob
-from os.path import join
+import os
 import tensorflow as tf
 import transformers
-import logging
-from models.configs import config
 from models.utils import custom_decay
-from models.utils.DataLoaders import SidBERTDataloader
-from src_utils import settings
+from utils.data_utils import original_ddc_loader as odl
+from utils.settings import get_data_root, HF_model_name
 
-# Set a logger
-logger = logging.getLogger('OmegaBERT')
-logger.setLevel('INFO')
-
-project_root = settings.get_project_root()
-data_path = ...
+data_root = get_data_root()
 
 
 class OmegaBERT:
-    def __init__(self, train, test, freeze_bert_layers=False):
-        logging.getLogger('Model').setLevel('INFO')
-        print(f'{tf.__version__}')
+    def __init__(self,
+                 freeze_bert_layers=True,
+                 restore_model=False,
+                 sequence_max_length=300,
+                 ddc_target_classes=None,
+                 leaky_relu_alpha=0.1):
+
         self.freeze_bert_layers = freeze_bert_layers
-        self.model = self.build_model()
-        logging.info('model was initialized successfully.')
-        self.model_index_id = self.get_model_index()
-        self.train_dataset = train
-        self.test_dataset = test
+        self.model_checkpoint_path = os.path.join(data_root, 'model_data', 'trained_models', 'OmegaBERT')
 
-    def get_model_index(self):
-        model_list = glob.glob('../data/checkpoints/model_index_*.data-00000-of-00001')
-        return len(model_list)
+        # create label lookup table for label assignment from last classification layer
+        self.ddc_target_classes = ddc_target_classes
+        self.class_position_hash = odl.create_ddc_label_lookup(self.ddc_target_classes)
 
-    def get_dataloaders(self):
-        return SidBERTDataloader(self.train_dataset), SidBERTDataloader(self.test_dataset)
+        # create tokenizer and set sequence length:
+        self.tokenizer = transformers.BertTokenizer.from_pretrained(HF_model_name)
+        self.max_length = sequence_max_length
 
-    def build_model(self, restore_model=False):
+        self.bert_output, self.model = self._build_model(restore_model=restore_model, leaky_relu_alpha=leaky_relu_alpha)
+        # self.model_index_id = self.get_model_index()
+
+    def _build_model(self, restore_model=False, leaky_relu_alpha=0.1):
 
         """
         Constructs model topology and loads weights from Checkpoint file. Topology needs to be changed
@@ -44,25 +41,79 @@ class OmegaBERT:
         """
 
         # Construct models topology
-        bert_model = transformers.TFBertModel.from_pretrained('bert-base-multilingual-cased')
-        input_ids = tf.keras.layers.Input(shape=(config.max_length,), name='input_ids', dtype='int32')
-        input_masks_ids = tf.keras.layers.Input(shape=(config.max_length,), name='attention_mask', dtype='int32')
-        input_type_ids = tf.keras.layers.Input(shape=(config.max_length,), name='token_type_ids', dtype='int32')
-        out = bert_model(input_ids, attention_mask=input_masks_ids, token_type_ids=input_type_ids)
+        bert_model = transformers.TFBertModel.from_pretrained(HF_model_name)
         if self.freeze_bert_layers:
             bert_model.trainable = False
-        sequence_output = out.pooler_output
-        glob_leaky = tf.keras.layers.LeakyReLU(alpha=0.15)
-        ch1 = tf.keras.layers.Dense(1024,activation=glob_leaky,name='ch1')(sequence_output)
-        ch2 = tf.keras.layers.BatchNormalization(name='b_norm_1')(ch1)
-        ch3 = tf.keras.layers.Dense(512,activation=glob_leaky,name='ch2')(ch2)
-        ch4 = tf.keras.layers.BatchNormalization(name='b_norm_2')(ch3)
-        ch5 = tf.keras.layers.Dense(256,activation=glob_leaky,name='ch3')(ch4)
-        ch6 = tf.keras.layers.Dense(128, activation=glob_leaky, name='ch4')(ch5)
-        output = tf.keras.layers.Dense(config.classes, activation="softmax", name='dense_final')(ch6)
-        model = tf.keras.Model(inputs=[input_ids, input_masks_ids, input_type_ids],
-                               outputs=output)
-        return model
+
+        input_ids = tf.keras.layers.Input(shape=(self.max_length,), name='input_ids', dtype='int32')
+        input_masks_ids = tf.keras.layers.Input(shape=(self.max_length,), name='attention_mask', dtype='int32')
+        input_type_ids = tf.keras.layers.Input(shape=(self.max_length,), name='token_type_ids', dtype='int32')
+        bert_output = bert_model(input_ids, attention_mask=input_masks_ids, token_type_ids=input_type_ids)
+        glob_leaky = tf.keras.layers.LeakyReLU(alpha=leaky_relu_alpha)
+        ch = tf.keras.layers.Dense(2048,activation=glob_leaky, name='dense_2048')(bert_output.pooler_output)
+        ch = tf.keras.layers.BatchNormalization(name='b_norm_2048')(ch)
+        ch = tf.keras.layers.Dense(1024,activation=glob_leaky, name='dense_1024')(ch)
+        ch = tf.keras.layers.BatchNormalization(name='b_norm_1024')(ch)
+        ch = tf.keras.layers.Dense(256,activation=glob_leaky, name='dense_256')(ch)
+        output = tf.keras.layers.Dense(len(self.ddc_target_classes), activation="softmax", name='final')(ch)
+        model = tf.keras.Model(inputs=[input_ids, input_masks_ids, input_type_ids], outputs=output)
+
+        if restore_model:
+            model.load_weights(os.path.join(self.model_checkpoint_path, 'new_training_latest_architecture'))
+            return bert_output, model
+        else:
+            return bert_output, model
+
+    def batch_get_pruned_model_output(self, batch_tokenized_data=None, prune_at_layer=None):
+
+        local_model = self.model
+        if prune_at_layer == 'pooler_output':
+            pruned_model = tf.keras.Model(inputs=local_model.inputs, outputs=self.bert_output.pooler_output)
+        elif prune_at_layer == 'sequence_output':
+            pruned_model = tf.keras.Model(inputs=local_model.inputs, outputs=self.bert_output.last_hidden_state)
+        else:
+            pruned_model = tf.keras.Model(inputs=local_model.inputs, outputs=local_model.get_layer(name=prune_at_layer).output)
+
+        return pruned_model.predict(x=batch_tokenized_data)
+
+    def predict_single_example(self, sequence, top_n=1):
+        """
+        queries the models neural network to produce a DDC label assignment together with an associated probability
+        sequence: String input that is to be classified
+        top_n: number of DDC labels to be returned. Defaults to 1
+
+        :return: dictionary with structure: key: DDC code value: probability
+        :rtype: python 3 dictionary object
+        """
+        encoded_sequence = self.tokenizer.encode_plus(sequence,
+                                                      add_special_tokens=True,
+                                                      padding='max_length',
+                                                      max_length=self.max_length,
+                                                      truncation=True,
+                                                      return_attention_mask=True,
+                                                      return_token_type_ids=True,
+                                                      pad_to_max_length=True,
+                                                      return_tensors="tf")
+
+        prediction_result = self.model.predict([encoded_sequence['input_ids'],
+                                                encoded_sequence['attention_mask'],
+                                                encoded_sequence['token_type_ids']])[0]
+
+        # Extract 'top_n' entries from the sorted indices of the models's prediction probabilities
+        max_ddcClasses_indices = prediction_result.argsort()[::-1][:top_n]  # contains 'top_n' position_indices with
+        # max. probabilities outputted by the trained models
+        max_ddcClasses_probs = prediction_result[max_ddcClasses_indices]
+        max_ddcClasses_labels = [self.class_position_hash[index] for index in max_ddcClasses_indices]
+
+        return dict(zip(max_ddcClasses_labels, max_ddcClasses_probs))
+
+    def _return_model_summary(self):
+        return self.model.summary()
+
+
+
+
+
 
     def train_model(self, class_imbalance_dict, save_prefix=0):
         if config.train_to_convergence:
@@ -99,3 +150,8 @@ class OmegaBERT:
         )
         model.save_weights(f'./src/data/checkpoints/model_index_{save_prefix}')
         return history
+
+
+# def get_model_index(self):
+    #     model_list = glob.glob('../data/checkpoints/model_index_*.data-00000-of-00001')
+    #     return len(model_list)

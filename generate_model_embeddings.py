@@ -38,7 +38,7 @@ def generate_embeddings(dataloader=None, model=None, prune_at_layer='pooler_outp
     # (<total number of entries in dataset>, <dimension of prune_at_layer's output>+1>)
     # Total number of entries = number of batches * size of batch
     embeddings = np.array(embeddings)
-    embeddings.reshape(embeddings.shape[0]*embeddings.shape[1], embeddings.shape[-1])
+    embeddings = embeddings.reshape(embeddings.shape[0]*embeddings.shape[1], embeddings.shape[-1])
 
     np.savez_compressed(embeddings=embeddings,
                         file=os.path.join(data_root, 'model_data', 'model_embeddings_{}.npz'.format(prune_at_layer)))

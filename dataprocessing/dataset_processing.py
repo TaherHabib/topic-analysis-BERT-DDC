@@ -73,7 +73,7 @@ class DatasetCreator:
         else:
             logger.info('Sampling number of entries equal to the \'num_samples\' for each DDC class')
             try:
-                assert num_samples > dataset['DDC'].value_counts()[-1]
+                assert num_samples < dataset['DDC'].value_counts()[-1]
             except AssertionError:
                 raise ValueError('Samples drawn per DDC class must not be more than the number of samples in the '
                                  'smallest DDC class.')

@@ -29,11 +29,10 @@ class PCAReducer:
 
     @staticmethod
     def set_save_path(file_args):
-        dir_name = 'Layer{}_Classes{}_SamplesPerRootClass{}_OriginalOnly{}'.format(file_args['layer'],
-                                                                                   ''.join(file_args['classes']),
-                                                                                   file_args['n_samples'],
-                                                                                   file_args['original_only'])
-        save_path = os.path.join(project_root, 'src', 'data', 'SidBERT_data', 'pca', dir_name)
+        dir_name = 'Layer{}_Classes{}_SamplesPerRootClass{}'.format(file_args['layer'],
+                                                                    ''.join(file_args['classes']),
+                                                                    file_args['n_samples'])
+        save_path = os.path.join(project_root, 'data', 'data_', 'model_data', 'pca_embeddings', dir_name)
         if not os.path.exists(save_path):
             os.makedirs(save_path)
         return save_path
@@ -113,6 +112,8 @@ class PCAReducer:
         if len(trial_results_) > 0:
             logger.info('Returning results for all trials...')
             return np.array(trial_results_, dtype=object)
+        else:
+            return
 
 
 if __name__ == '__main__':

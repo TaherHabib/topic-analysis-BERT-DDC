@@ -14,7 +14,7 @@ handler.setLevel(logging.INFO)
 handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s : %(levelname)s :- %(message)s'))
 # logger.addHandler(handler)
 
-project_root = settings.get_project_root()
+data_root = settings.get_data_root()
 
 
 class PCAReducer:
@@ -32,7 +32,7 @@ class PCAReducer:
         dir_name = 'Layer{}_Classes{}_SamplesPerRootClass{}'.format(file_args['layer'],
                                                                     ''.join(file_args['classes']),
                                                                     file_args['n_samples'])
-        save_path = os.path.join(project_root, 'data', 'data_', 'model_data', 'pca_embeddings', dir_name)
+        save_path = os.path.join(data_root, 'model_data', 'pca_embeddings', dir_name)
         if not os.path.exists(save_path):
             os.makedirs(save_path)
         return save_path

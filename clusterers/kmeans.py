@@ -4,7 +4,7 @@ import numpy as np
 
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score, adjusted_rand_score, adjusted_mutual_info_score, davies_bouldin_score
-from src_utils import settings
+from utils import settings
 from .cluster_utils import compute_dunn_index, compute_cluster_sizes
 
 # Set a logger

@@ -4,7 +4,7 @@ import numpy as np
 
 from sklearn.cluster import DBSCAN, OPTICS
 from sklearn.metrics import silhouette_score, adjusted_rand_score, adjusted_mutual_info_score, davies_bouldin_score
-from src_utils import settings
+from utils import settings
 from .cluster_utils import compute_dunn_index, compute_cluster_centers, compute_cluster_sizes, get_num_dbscan_clusters
 
 # Set a logger

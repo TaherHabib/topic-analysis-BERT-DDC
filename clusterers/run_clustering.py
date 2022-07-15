@@ -3,9 +3,9 @@ import logging
 import numpy as np
 import pandas as pd
 
-from src_utils import settings
-from src.clusterers.kmeans import KMEANS_CLUSTERER
-from src.clusterers.dbscan import DBSCAN_CLUSTERER
+from utils import settings
+from clusterers.kmeans import KMEANS_CLUSTERER
+from clusterers.dbscan import DBSCAN_CLUSTERER
 
 # Set a logger
 logger = logging.getLogger()

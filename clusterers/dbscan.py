@@ -15,16 +15,16 @@ handler.setLevel(logging.INFO)
 handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s : %(levelname)s :- %(message)s'))
 # logger.addHandler(handler)
 
-project_root = settings.get_project_root()
+data_root = settings.get_data_root()
 
 
 class DBSCAN_CLUSTERER:
     def __init__(self,
                  eps_range=None,
                  min_samples_range=None,
-                 metric='euclidean',
+                 metric='minkowski',
                  algorithm='auto',
-                 p=None,
+                 p=1,
                  n_jobs=-1):
         self.eps_range = eps_range
         self.min_samples_range = min_samples_range
@@ -35,16 +35,15 @@ class DBSCAN_CLUSTERER:
 
     @staticmethod
     def set_save_path(file_args):
-        dir_name = 'Layer{}_Classes{}_SamplesPerRootClass{}_OriginalOnly{}_PCAComp{}_PCAVar{}_PCAScaler{}'.format(
+        dir_name = 'Layer{}_Classes{}_SamplesPerRootClass{}_PCAComp{}_PCAVar{}_PCAScaler{}'.format(
             file_args['layer'],
             ''.join(file_args['classes']),
             file_args['n_samples'],
-            file_args['original_only'],
             file_args['pca_comp'],
             file_args['pca_var'],
             file_args['pca_scaler']
         )
-        save_path = os.path.join(project_root, 'src', 'data', 'SidBERT_data', 'dbscan', dir_name)
+        save_path = os.path.join(data_root, 'cluster_data', 'dbscan', dir_name)
         if not os.path.exists(save_path):
             os.makedirs(save_path)
         return save_path

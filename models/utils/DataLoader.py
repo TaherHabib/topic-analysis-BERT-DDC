@@ -1,13 +1,13 @@
 import tensorflow as tf
 import transformers
 import numpy as np
-import logging
-from utils.settings import HF_model_name
+from utils.settings import HF_bert_model_name, HF_distilbert_model_name
 
 
-class SidBERTDataloader(tf.keras.utils.Sequence):
+class BERTDataloader(tf.keras.utils.Sequence):
     def __init__(self,
                  dataset=None,
+                 bert_model_name=None,
                  batch_size=16,
                  max_length=300,
                  embeddings_generator_mode=False):
@@ -19,7 +19,7 @@ class SidBERTDataloader(tf.keras.utils.Sequence):
         self.embeddings_generator_mode = embeddings_generator_mode
         self.batch_size = batch_size
         self.max_length = max_length
-        self.tokenizer = transformers.BertTokenizer.from_pretrained(HF_model_name)
+        self.tokenizer = self.get_tokenizer(bert_model_name)
 
     def __len__(self):
         return len(self.text_) // self.batch_size
@@ -32,10 +32,7 @@ class SidBERTDataloader(tf.keras.utils.Sequence):
                                                               padding='max_length',
                                                               max_length=self.max_length,
                                                               truncation=True,
-                                                              return_attention_mask=True,
-                                                              return_token_type_ids=True,
-                                                              pad_to_max_length=True,
-                                                              return_tensors="tf",).data
+                                                              return_tensors="tf")
         if self.embeddings_generator_mode:
             return tokenized_encoding, self.orig_indices[local_indices]
         else:
@@ -44,4 +41,16 @@ class SidBERTDataloader(tf.keras.utils.Sequence):
     def on_epoch_end(self):
         if not self.generator_mode:
             np.random.RandomState(42).shuffle(self.indices)
+
+    @staticmethod
+    def get_tokenizer(model_name):
+
+        if model_name == HF_bert_model_name:
+            tokenizer = transformers.BertTokenizer.from_pretrained(model_name)
+        elif model_name == HF_distilbert_model_name:
+            tokenizer = transformers.DistilBertTokenizer.from_pretrained(model_name)
+        else:
+            raise ValueError('Wrong model name found. Check available names of models from HuggingFace.')
+
+        return tokenizer
 

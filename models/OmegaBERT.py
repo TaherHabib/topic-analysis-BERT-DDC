@@ -4,19 +4,21 @@ import tensorflow as tf
 import transformers
 from models.utils import custom_decay
 from utils.data_utils import original_ddc_loader as odl
-from utils.settings import get_data_root, HF_model_name
+from utils.settings import get_data_root, HF_bert_model_name
 
 data_root = get_data_root()
 
 
 class OmegaBERT:
     def __init__(self,
-                 freeze_bert_layers=True,
-                 restore_model=False,
+                 freeze_bert_layers=None,
+                 restore_model=None,
                  sequence_max_length=300,
                  ddc_target_classes=None,
+                 bert_model_name=None,
                  leaky_relu_alpha=0.1):
 
+        self.bert_model_name = bert_model_name
         self.freeze_bert_layers = freeze_bert_layers
         self.model_checkpoint_path = os.path.join(data_root, 'model_data', 'trained_models', 'OmegaBERT')
 
@@ -25,7 +27,7 @@ class OmegaBERT:
         self.class_position_hash = odl.create_ddc_label_lookup(self.ddc_target_classes)
 
         # create tokenizer and set sequence length:
-        self.tokenizer = transformers.BertTokenizer.from_pretrained(HF_model_name)
+        self.tokenizer = transformers.BertTokenizer.from_pretrained(HF_bert_model_name)
         self.max_length = sequence_max_length
 
         self.bert_output, self.model = self._build_model(restore_model=restore_model, leaky_relu_alpha=leaky_relu_alpha)
@@ -41,7 +43,7 @@ class OmegaBERT:
         """
 
         # Construct models topology
-        bert_model = transformers.TFBertModel.from_pretrained(HF_model_name)
+        bert_model = transformers.TFBertModel.from_pretrained(HF_bert_model_name)
         if self.freeze_bert_layers:
             bert_model.trainable = False
 
@@ -90,9 +92,6 @@ class OmegaBERT:
                                                       padding='max_length',
                                                       max_length=self.max_length,
                                                       truncation=True,
-                                                      return_attention_mask=True,
-                                                      return_token_type_ids=True,
-                                                      pad_to_max_length=True,
                                                       return_tensors="tf")
 
         prediction_result = self.model.predict([encoded_sequence['input_ids'],

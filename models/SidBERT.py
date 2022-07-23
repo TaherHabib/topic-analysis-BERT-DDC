@@ -1,7 +1,7 @@
 import tensorflow as tf
 import transformers
 import os
-from utils.settings import get_data_root, HF_model_name
+from utils.settings import get_data_root, HF_bert_model_name
 from utils.data_utils import original_ddc_loader as odl
 
 data_root = get_data_root()
@@ -14,16 +14,18 @@ class SidBERT:
     recommender_backbone.py
     """
     def __init__(self,
-                 freeze_bert_layers=True,
-                 restore_model=False,
+                 freeze_bert_layers=None,
+                 restore_model=None,
                  sequence_max_length=300,
-                 ddc_target_classes=None):
+                 ddc_target_classes=None,
+                 bert_model_name=None):
 
         """
         Constructor of the class loads the trained models for prediction.
         Use configuration from BERT_CONF config.py to load the models
         """
 
+        self.bert_model_name = bert_model_name
         self.freeze_bert_layers = freeze_bert_layers
         self.model_checkpoint_path = os.path.join(data_root, 'model_data', 'trained_models', 'SidBERT')
 
@@ -32,7 +34,7 @@ class SidBERT:
         self.class_position_hash = odl.create_ddc_label_lookup(self.ddc_target_classes)
 
         # create tokenizer and set sequence length:
-        self.tokenizer = transformers.BertTokenizer.from_pretrained(HF_model_name)
+        self.tokenizer = transformers.BertTokenizer.from_pretrained(HF_bert_model_name)
         self.max_length = sequence_max_length
 
         # load trained models
@@ -46,7 +48,7 @@ class SidBERT:
         :rtype: tensorflow.keras.Model object
         """
         # Construct models topology
-        bert_model = transformers.TFBertModel.from_pretrained(HF_model_name)
+        bert_model = transformers.TFBertModel.from_pretrained(HF_bert_model_name)
         if self.freeze_bert_layers:
             bert_model.trainable = False
 
@@ -94,9 +96,6 @@ class SidBERT:
                                                       padding='max_length',
                                                       max_length=self.max_length,
                                                       truncation=True,
-                                                      return_attention_mask=True,
-                                                      return_token_type_ids=True,
-                                                      pad_to_max_length=True,
                                                       return_tensors="tf")
 
         prediction_result = self.model.predict([encoded_sequence['input_ids'],

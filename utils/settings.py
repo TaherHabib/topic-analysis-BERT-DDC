@@ -1,7 +1,9 @@
 from pathlib import Path
 import os
 
-HF_model_name = 'bert-base-multilingual-cased'
+HF_bert_model_name = 'bert-base-multilingual-cased'
+
+HF_distilbert_model_name = 'distilbert-base-multilingual-cased'
 
 
 def get_project_root():

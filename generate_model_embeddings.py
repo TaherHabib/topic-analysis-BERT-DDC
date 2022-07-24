@@ -122,7 +122,8 @@ if __name__ == '__main__':
         model = DistilBERT.DistilBERT(freeze_bert_layers=model_config['freeze_bert_layers'],
                                       sequence_max_length=train_config['max_length'],
                                       ddc_target_classes=sorted(list(dataset_['DDC'].unique())),
-                                      bert_model_name=HF_distilbert_model_name
+                                      bert_model_name=HF_distilbert_model_name,
+                                      sequence_classifier=model_config['sequence_classifier']
                                       )
     else:
         raise ValueError('Please enter a valid model name (string)')

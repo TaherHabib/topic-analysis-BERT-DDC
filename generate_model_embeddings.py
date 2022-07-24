@@ -4,8 +4,9 @@ import yaml
 import logging
 import argparse
 from dataprocessing.dataset_processing import DatasetCreator
-from models.utils.DataLoader import SidBERTDataloader
-from models import SidBERT, OmegaBERT
+from models.utils.DataLoader import BERTDataloader
+from utils.settings import HF_bert_model_name, HF_distilbert_model_name
+from models import SidBERT, OmegaBERT, DistilBERT
 from utils import settings
 
 # Set a logger
@@ -41,7 +42,8 @@ def generate_embeddings(dataloader=None, model=None, prune_at_layer='pooler_outp
     embeddings = embeddings.reshape(embeddings.shape[0]*embeddings.shape[1], embeddings.shape[-1])
 
     np.savez_compressed(embeddings=embeddings,
-                        file=os.path.join(data_root, 'model_data', 'model_embeddings_{}.npz'.format(prune_at_layer)))
+                        file=os.path.join(data_root, 'model_data', 'embeddings_{}_{}.npz'.format(model.bert_model_name,
+                                                                                                 prune_at_layer)))
 
     logger.info('Embeddings generation for the requested layer completed.')
 
@@ -54,7 +56,7 @@ parser.add_argument('dataset_filename', action='store', default=None, type=str,
 parser.add_argument('-c', '--columns_to_use', dest='columns_to_use', action='append', required=True,
                     help='Columns to use for embeddings generation (should be columns with strings).')
 parser.add_argument('-m', '--model_to_use', dest='model_to_use', action='store', required=True,
-                    help='Columns to use for embeddings generation (should be columns with strings).')
+                    help='Model to use for embeddings generation.')
 
 if __name__ == '__main__':
 
@@ -76,17 +78,18 @@ if __name__ == '__main__':
                                     min_title_length=train_config['min_title_length']
                                     ).generate_dataset(embeddings_generator_mode=True)
 
-    logger.info('Initializing Dataloader with batch size {} and sequence length {}'.format(train_config['batch_size'],
-                                                                                           train_config['max_length']))
-    dataloader = SidBERTDataloader(dataset=dataset_,
-                                   batch_size=train_config['batch_size'],
-                                   max_length=train_config['max_length'],
-                                   embeddings_generator_mode=True)
-
     logger.info('Setting up the requisite model...')
+    logger.info('Dataloader with batch size {} and sequence length {} to be initialized.'.format(train_config['batch_size'],
+                                                                                                 train_config['max_length']))
     if args.model_to_use.lower() == 'omegabert':
         with open(os.path.join(project_root, 'configs', 'omegabert_config.yml'), 'r') as f:
             model_config = yaml.safe_load(f)
+
+        dataloader = BERTDataloader(dataset=dataset_,
+                                    bert_model_name=HF_bert_model_name,
+                                    batch_size=train_config['batch_size'],
+                                    max_length=train_config['max_length'],
+                                    embeddings_generator_mode=True)
         model = OmegaBERT.OmegaBERT(freeze_bert_layers=model_config['freeze_bert_layers'],
                                     restore_model=True,
                                     sequence_max_length=train_config['max_length'],
@@ -96,11 +99,31 @@ if __name__ == '__main__':
     elif args.model_to_use.lower() == 'sidbert':
         with open(os.path.join(project_root, 'configs', 'sidbert_config.yml'), 'r') as f:
             model_config = yaml.safe_load(f)
+
+        dataloader = BERTDataloader(dataset=dataset_,
+                                    bert_model_name=HF_bert_model_name,
+                                    batch_size=train_config['batch_size'],
+                                    max_length=train_config['max_length'],
+                                    embeddings_generator_mode=True)
         model = SidBERT.SidBERT(freeze_bert_layers=model_config['freeze_bert_layers'],
                                 restore_model=True,
                                 sequence_max_length=train_config['max_length'],
                                 ddc_target_classes=sorted(list(dataset_['DDC'].unique()))
                                 )
+    elif args.model_to_use.lower() == 'distilbert':
+        with open(os.path.join(project_root, 'configs', 'distilbert_config.yml'), 'r') as f:
+            model_config = yaml.safe_load(f)
+
+        dataloader = BERTDataloader(dataset=dataset_,
+                                    bert_model_name=HF_distilbert_model_name,
+                                    batch_size=train_config['batch_size'],
+                                    max_length=train_config['max_length'],
+                                    embeddings_generator_mode=True)
+        model = DistilBERT.DistilBERT(freeze_bert_layers=model_config['freeze_bert_layers'],
+                                      sequence_max_length=train_config['max_length'],
+                                      ddc_target_classes=sorted(list(dataset_['DDC'].unique())),
+                                      bert_model_name=HF_distilbert_model_name
+                                      )
     else:
         raise ValueError('Please enter a valid model name (string)')
 
@@ -157,7 +180,7 @@ if __name__ == '__main__':
     #                                                       min_title_length=config.min_title_length,
     #                                                       test_size=config.train_test_ratio,
     #                                                       balanced_class_distribution=config.balanced_classes).generate_final_dataset()
-    # dataloader = DataLoader.SidBERTDataloader(dataset=train_df,
+    # dataloader = DataLoader.BERTDataloader(dataset=train_df,
     #                                           batch_size=config.batch_size,
     #                                           max_length=config.max_length,
     #                                           generator_mode=True)

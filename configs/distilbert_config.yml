@@ -1,4 +1,5 @@
 freeze_bert_layers: true
 model_layers:
 - pooler_output
+- classifier_output
 - sequence_output

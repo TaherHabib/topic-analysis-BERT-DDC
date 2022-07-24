@@ -76,7 +76,7 @@ class OmegaBERT:
         else:
             pruned_model = tf.keras.Model(inputs=local_model.inputs, outputs=local_model.get_layer(name=prune_at_layer).output)
 
-        return pruned_model.predict(x=batch_tokenized_data)
+        return pruned_model.predict(x=batch_tokenized_data.data)
 
     def predict_single_example(self, sequence, top_n=1):
         """

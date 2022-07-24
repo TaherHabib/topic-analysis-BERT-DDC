@@ -32,24 +32,56 @@ class DistilBERT:
         # create tokenizer and set sequence length:
         self.tokenizer = transformers.DistilBertTokenizer.from_pretrained(self.bert_model_name)
         self.max_length = sequence_max_length
+        self.sequence_classifier = sequence_classifier
 
-        self.bert_output, self.model = self._build_model(restore_model=restore_model,
-                                                         for_sequence_classification=sequence_classifier)
+        self.bert_output, self.model = self._build_model(restore_model=restore_model)
 
-    def _build_model(self, restore_model=None, for_sequence_classification=None):
+    def _build_model(self, restore_model=None):
 
-        if for_sequence_classification:
+        input_ids = tf.keras.layers.Input(shape=(self.max_length,), name='input_ids', dtype='int32')
+        input_masks_ids = tf.keras.layers.Input(shape=(self.max_length,), name='attention_mask', dtype='int32')
+
+        if self.sequence_classifier:
             distilbert_model = transformers.TFDistilBertForSequenceClassification.from_pretrained(self.bert_model_name)
         else:
             distilbert_model = transformers.TFDistilBertModel.from_pretrained(self.bert_model_name)
 
-        distilbert_output = distilbert_model(input_ids, attention_mask=input_masks_ids)
-        model = tf.keras.Model(inputs=[input_ids, input_masks_ids, input_type_ids], outputs=bert_output)
-
-
         if self.freeze_bert_layers:
-            bert_model.trainable = False
+            distilbert_model.trainable = False
 
-        return bert_output, model
+        distilbert_output = distilbert_model(input_ids, attention_mask=input_masks_ids)
+        model = tf.keras.Model(inputs=[input_ids, input_masks_ids], outputs=distilbert_output)
+
+        if restore_model:
+            model.load_weights(os.path.join(self.model_checkpoint_path, '...'))
+            return distilbert_output, model
+        else:
+            return distilbert_output, model
+
+    def batch_get_pruned_model_output(self, batch_tokenized_data=None, prune_at_layer=None):
+
+        local_model = self.model
+
+        if self.sequence_classifier:
+            if prune_at_layer == 'pooler_output':
+                # TODO:
+                pruned_model = tf.keras.Model(inputs=local_model.inputs, outputs=self.bert_output.pooler_output)
+            elif prune_at_layer == 'classifier_output':
+                pruned_model = tf.keras.Model(inputs=local_model.inputs, outputs=self.bert_output.logits)
+            else:
+                raise ValueError('Please enter a valid layer name for DistilBERTForSequenceClassification. '
+                                 'Only: pooler_output OR classifier_output')
+        else:
+            if prune_at_layer == 'sequence_output':
+                pruned_model = tf.keras.Model(inputs=local_model.inputs, outputs=self.bert_output.last_hidden_state)
+            else:
+                raise ValueError('Please enter a valid layer name for DistilBERT. Only: sequence_output')
+
+        return pruned_model.predict(x=batch_tokenized_data.data)
+
+    def _return_model_summary(self):
+        return self.model.summary()
+
+
 
 
